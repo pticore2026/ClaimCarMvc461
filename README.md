@@ -16,6 +16,20 @@ Bản dựng lại dựa trên toàn bộ workbook `ĐẶC TẢ DỮ LIỆU VÀ 
 ## Chạy ngay
 Mở `ClaimCarMvc461.sln`, Restore NuGet, Ctrl+F5. Login `admin / 123456`.
 
+Hoặc khởi động ứng dụng bằng Apache:
+
+```bash
+sudo apache2ctl configtest
+sudo apache2ctl start
+```
+
+Kiểm tra ứng dụng đã phản hồi và Apache đang lắng nghe trên cổng `8080`:
+
+```bash
+curl -I http://127.0.0.1:8080
+sudo ss -ltnp | grep 8080
+```
+
 Xem `RUN-IIS.md` để chạy IIS thật và `docs/SDK-EXTENSIONS.md` để viết plugin.
 
 

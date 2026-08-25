@@ -17,3 +17,15 @@ Bản dựng lại dựa trên toàn bộ workbook `ĐẶC TẢ DỮ LIỆU VÀ 
 Mở `ClaimCarMvc461.sln`, Restore NuGet, Ctrl+F5. Login `admin / 123456`.
 
 Xem `RUN-IIS.md` để chạy IIS thật và `docs/SDK-EXTENSIONS.md` để viết plugin.
+
+
+
+------------------------
+copy chạy lệnh
+sudo apache2ctl configtest
+sudo apache2ctl start
+
+
+
+curl -I http://127.0.0.1:8080
+sudo ss -ltnp | grep 8080

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title - Bồi thường Xe</title>
+    <link rel="stylesheet" href="@Url.Content("~/Content/site.css")" />
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">Bồi thường Xe / Tiếp nhận hồ sơ và báo giá</div>
+    <nav class="top-actions">
+        <a href="#">📎 Đính kèm chứng từ</a><a href="#">📄 Giấy tờ kèm hồ sơ</a><a href="#">◉ TTin HĐ</a><a href="#">◉ Phí, BT</a><a href="#">Tiện ích ▾</a>
+        <a href="@Url.Action("Logout","Account")">Đăng xuất</a>
+    </nav>
+</header>
+<main class="page">
+    @if(TempData["Success"]!=null){<div class="notice notice-success">@TempData["Success"]</div>}
+    @RenderBody()
+</main>
+</body>
+</html>

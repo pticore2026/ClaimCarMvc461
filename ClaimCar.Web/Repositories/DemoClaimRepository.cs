@@ -1,0 +1,47 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using ClaimCar.Web.Models;
+namespace ClaimCar.Web.Repositories
+{
+    public class DemoClaimRepository : IClaimRepository
+    {
+        private static readonly object Sync = new object();
+        private static readonly List<Claim> Claims = new List<Claim>
+        {
+            new Claim { Id=1, ManagementUnitCode="001", ManagementUnitName="thành phố Hồ Chí Minh", ManagementAreaCode="HCM", ManagementAreaName="Khu vực TP Hồ Chí Minh", LicensePlate="51L48238", EntryDate=new DateTime(2026,8,21), CallEntryDate=new DateTime(2026,8,21), PolicyNumber="0010TTN250004670", Status="Đã bảo lãnh", AccidentDate=new DateTime(2026,8,21), NotificationDate=new DateTime(2026,8,21), ClaimNumber="0055235/000-091/0002628/BT/001-P8/XO/2026", SurveyorCode="PHUONGPHT", InsuredValue=991000000m },
+            new Claim { Id=2, ManagementUnitCode="001", ManagementUnitName="thành phố Hồ Chí Minh", ManagementAreaCode="HCM", ManagementAreaName="Khu vực TP Hồ Chí Minh", LicensePlate="30A-123.45", EntryDate=new DateTime(2026,8,20), CallEntryDate=new DateTime(2026,8,20), PolicyNumber="HD-DEMO-001", Status="Đang giám định", AccidentDate=new DateTime(2026,8,19), NotificationDate=new DateTime(2026,8,20), ClaimNumber="HS-DEMO-001", SurveyorCode="GDV001", InsuredValue=700000000m }
+        };
+        private static readonly Dictionary<int, LossPaymentViewModel> Losses = new Dictionary<int, LossPaymentViewModel>();
+        private static readonly Dictionary<int, QuoteViewModel> Quotes = new Dictionary<int, QuoteViewModel>();
+        static DemoClaimRepository()
+        {
+            Losses[1] = BuildLoss(1);
+            Quotes[1] = BuildQuote(1);
+        }
+        public IList<Claim> Search(string keyword, string status)
+        {
+            lock(Sync)
+            {
+                IEnumerable<Claim> q = Claims;
+                if(!string.IsNullOrWhiteSpace(keyword)) { keyword=keyword.Trim().ToLowerInvariant(); q=q.Where(x => (x.ClaimNumber??"").ToLowerInvariant().Contains(keyword) || (x.LicensePlate??"").ToLowerInvariant().Contains(keyword) || (x.PolicyNumber??"").ToLowerInvariant().Contains(keyword)); }
+                if(!string.IsNullOrWhiteSpace(status)) q=q.Where(x=>string.Equals(x.Status,status,StringComparison.OrdinalIgnoreCase));
+                return q.OrderByDescending(x=>x.EntryDate).Select(CloneClaim).ToList();
+            }
+        }
+        public Claim Get(int id) { lock(Sync){ var x=Claims.FirstOrDefault(c=>c.Id==id); return x==null?null:CloneClaim(x); } }
+        public int Insert(Claim claim) { lock(Sync){ claim.Id=Claims.Count==0?1:Claims.Max(x=>x.Id)+1; Claims.Add(CloneClaim(claim)); return claim.Id; } }
+        public void Update(Claim claim) { lock(Sync){ var i=Claims.FindIndex(x=>x.Id==claim.Id); if(i>=0) Claims[i]=CloneClaim(claim); } }
+        public void Delete(int id) { lock(Sync){ Claims.RemoveAll(x=>x.Id==id); Losses.Remove(id); Quotes.Remove(id); } }
+        public bool ClaimNumberExists(string n,int? exceptId) { lock(Sync){ return Claims.Any(x=>x.ClaimNumber==n && (!exceptId.HasValue || x.Id!=exceptId.Value)); } }
+        public LossPaymentViewModel GetLossPayment(int claimId) { lock(Sync){ LossPaymentViewModel x; if(!Losses.TryGetValue(claimId,out x)){x=BuildLoss(claimId);Losses[claimId]=x;} return CloneLoss(x); } }
+        public void SaveLossPayment(LossPaymentViewModel model) { lock(Sync){ Losses[model.ClaimId]=CloneLoss(model); } }
+        public QuoteViewModel GetQuote(int claimId) { lock(Sync){ QuoteViewModel x; if(!Quotes.TryGetValue(claimId,out x)){x=BuildQuote(claimId);Quotes[claimId]=x;} return CloneQuote(x); } }
+        public void SaveQuote(QuoteViewModel model) { lock(Sync){ Quotes[model.ClaimId]=CloneQuote(model); } }
+        private static Claim CloneClaim(Claim x) { return new Claim { Id=x.Id,ManagementUnitCode=x.ManagementUnitCode,ManagementUnitName=x.ManagementUnitName,ManagementAreaCode=x.ManagementAreaCode,ManagementAreaName=x.ManagementAreaName,LicensePlate=x.LicensePlate,EntryDate=x.EntryDate,CallEntryDate=x.CallEntryDate,PolicyNumber=x.PolicyNumber,Status=x.Status,DecisionDate=x.DecisionDate,AccidentDate=x.AccidentDate,NotificationDate=x.NotificationDate,ClaimNumber=x.ClaimNumber,SurveyorCode=x.SurveyorCode,InsuredValue=x.InsuredValue}; }
+        private static LossPaymentViewModel BuildLoss(int id){ return new LossPaymentViewModel{ClaimId=id,CauseCode="NNTT.1.2.1",AreaCode="26740",EventCode="Không sự kiện 2025",VehicleCertificateValue=991000000m,AccidentDescription="Theo TBTN và YCBT.",CauseDescription="Theo TBTN và YCBT.",ConsequenceDescription="Theo BBGĐ.",GarageCode="0300481551-006.19094820...",GarageName="Chi Nhánh Tổng Công Ty Cơ Khí Giao Thông Vận Tải Sài Gòn - TNHH Một Thành Viên-Xí Nghiệp ô Tô Toyota-Bến Thành",GarageEmail="phuongpht@pti.com.vn, tbtc...",PayThroughGarage=true,AssociationFund=false,Coverages=new List<CoverageLine>{new CoverageLine{Id=1,CoverageCode="XO.4.1.1",Currency="VND",InsuranceAmount=991000000m,LossAmount=1342037m,Deductible=0m,CompensationAmount=1342037m,TaxAmount=0m}},OtherBeneficiaries=new List<BeneficiaryLine>{new BeneficiaryLine{Id=1,Code="030048...",Name="Chi Nhánh Tổng Công Ty Cơ Khí Giao Thông Vận Tải Sài Gòn - TNHH Một Thành Viên-Xí Nghiệp ô Tô Toyota-Bến Thành"}},ThirdParties=new List<ThirdPartyLine>()}; }
+        private static QuoteViewModel BuildQuote(int id){ return new QuoteViewModel{ClaimId=id,ApprovalType="Duyệt giá",ActualValue=991000000m,Items=new List<QuoteItem>{new QuoteItem{Id=1,PartName="Vỏ đèn hậu (hoặc miếng ngoài) bên phải",Quantity=0,Proposal="Sửa chữa",PartPrice=0,PaintCost=0,LaborCost=0},new QuoteItem{Id=2,PartName="Ốp cản sau phải",Quantity=1,Proposal="Sửa chữa",PartType="Chính hãng",PartPrice=160000,PaintCost=630000,LaborCost=0},new QuoteItem{Id=3,PartName="Tai xe phải",Quantity=1,Proposal="Sửa chữa",PartType="Chính hãng",PartPrice=50000,PaintCost=1060000,LaborCost=0}},RepairTotal=210000m,PaintTotal=1690000m,RepairDiscountPercent=5m,PaintDiscountPercent=5m,ParticipationValuePercent=100m,ParticipationFeePercent=100m,DeductibleCases=1,DeductibleAmount=462963m,CustomerPaymentTotal=462963m,ApprovedTotal=1342037m,Checker="HOANGLN2"}; }
+        private static LossPaymentViewModel CloneLoss(LossPaymentViewModel x){return new LossPaymentViewModel{ClaimId=x.ClaimId,CauseCode=x.CauseCode,BehaviorCode=x.BehaviorCode,AreaCode=x.AreaCode,EventCode=x.EventCode,TbtnYcbReference=x.TbtnYcbReference,VehicleCertificateValue=x.VehicleCertificateValue,AccidentDescription=x.AccidentDescription,CauseDescription=x.CauseDescription,ConsequenceDescription=x.ConsequenceDescription,GarageCode=x.GarageCode,GarageName=x.GarageName,GaragePhone=x.GaragePhone,GarageEmail=x.GarageEmail,PayThroughGarage=x.PayThroughGarage,AssociationFund=x.AssociationFund,Coverages=(x.Coverages??new List<CoverageLine>()).Select(a=>new CoverageLine{Id=a.Id,CoverageCode=a.CoverageCode,Currency=a.Currency,InsuranceAmount=a.InsuranceAmount,LossAmount=a.LossAmount,Deductible=a.Deductible,CompensationAmount=a.CompensationAmount,TaxAmount=a.TaxAmount}).ToList(),OtherBeneficiaries=(x.OtherBeneficiaries??new List<BeneficiaryLine>()).Select(a=>new BeneficiaryLine{Id=a.Id,Code=a.Code,Name=a.Name}).ToList(),ThirdParties=(x.ThirdParties??new List<ThirdPartyLine>()).Select(a=>new ThirdPartyLine{Id=a.Id,Name=a.Name,Currency=a.Currency,Amount=a.Amount}).ToList()};}
+        private static QuoteViewModel CloneQuote(QuoteViewModel x){return new QuoteViewModel{ClaimId=x.ClaimId,ApprovalType=x.ApprovalType,ActualValue=x.ActualValue,SubmitDate=x.SubmitDate,ReductionReason=x.ReductionReason,Items=(x.Items??new List<QuoteItem>()).Select(a=>new QuoteItem{Id=a.Id,PartName=a.PartName,Quantity=a.Quantity,Proposal=a.Proposal,PartType=a.PartType,PartPrice=a.PartPrice,PaintCost=a.PaintCost,LaborCost=a.LaborCost}).ToList(),ReplacementTotal=x.ReplacementTotal,SpecialReplacementTotal=x.SpecialReplacementTotal,RepairTotal=x.RepairTotal,PaintTotal=x.PaintTotal,LaborTotal=x.LaborTotal,TowingTotal=x.TowingTotal,RepairDiscountPercent=x.RepairDiscountPercent,PaintDiscountPercent=x.PaintDiscountPercent,ReplacementDiscountPercent=x.ReplacementDiscountPercent,ReplacementDepreciationPercent=x.ReplacementDepreciationPercent,SpecialDepreciationPercent=x.SpecialDepreciationPercent,ParticipationValuePercent=x.ParticipationValuePercent,ParticipationFeePercent=x.ParticipationFeePercent,DeductibleCases=x.DeductibleCases,DeductibleAmount=x.DeductibleAmount,CompensationReductionPercent=x.CompensationReductionPercent,RiskSharingPercent=x.RiskSharingPercent,CustomerPaymentTotal=x.CustomerPaymentTotal,ApprovedTotal=x.ApprovedTotal,Checker=x.Checker};}
+    }
+}

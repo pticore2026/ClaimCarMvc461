@@ -17,3 +17,7 @@ Bản dựng lại dựa trên toàn bộ workbook `ĐẶC TẢ DỮ LIỆU VÀ 
 Mở `ClaimCarMvc461.sln`, Restore NuGet, Ctrl+F5. Login `admin / 123456`.
 
 Xem `RUN-IIS.md` để chạy IIS thật và `docs/SDK-EXTENSIONS.md` để viết plugin.
+
+
+
+------------------------

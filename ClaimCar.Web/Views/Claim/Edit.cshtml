@@ -5,7 +5,7 @@
 <div class="card">
 @using(Html.BeginForm("Edit","Claim",FormMethod.Post,new{accept_charset="utf-8"})){
 @Html.AntiForgeryToken() @Html.HiddenFor(x=>x.Id)
-@if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.ValidationSummary(false)</div>}
+if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.ValidationSummary(false)</div>}
 <div class="form-grid">
 <div class="form-group"><label class="required">Đơn vị Quản lý</label>@Html.HiddenFor(x=>x.ManagementUnitCode)@Html.TextBoxFor(x=>x.ManagementUnitName,new{@class="form-control readonly"})</div>
 <div class="form-group"><label class="required">Khu vực quản lý</label>@Html.HiddenFor(x=>x.ManagementAreaCode)@Html.TextBoxFor(x=>x.ManagementAreaName,new{@class="form-control"})</div>

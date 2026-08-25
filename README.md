@@ -21,11 +21,3 @@ Xem `RUN-IIS.md` để chạy IIS thật và `docs/SDK-EXTENSIONS.md` để vi�
 
 
 ------------------------
-copy chạy lệnh
-sudo apache2ctl configtest
-sudo apache2ctl start
-
-
-
-curl -I http://127.0.0.1:8080
-sudo ss -ltnp | grep 8080

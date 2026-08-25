@@ -5,7 +5,7 @@
 <div class="card">
 @using(Html.BeginForm("Edit","Quote",FormMethod.Post,new{accept_charset="utf-8"})){
 @Html.AntiForgeryToken() @Html.HiddenFor(x=>x.ClaimId)
-@if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.ValidationSummary(false)</div>}
+if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.ValidationSummary(false)</div>}
 <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 2fr"><div class="form-group"><label class="required">Kiểu duyệt</label><select class="form-control" name="ApprovalType"><option @(Model.ApprovalType=="Duyệt giá"?"selected":"")>Duyệt giá</option><option @(Model.ApprovalType=="Công nhận giá"?"selected":"")>Công nhận giá</option></select></div><div class="form-group"><label class="required">Giá trị thực tế</label>@Html.TextBoxFor(x=>x.ActualValue,new{@class="form-control readonly right",type="number"})</div><div class="form-group"><label>Ngày trình</label><input class="form-control readonly" type="date" name="SubmitDate" value="@(Model.SubmitDate.HasValue?Model.SubmitDate.Value.ToString("yyyy-MM-dd"):"")"/></div><div class="form-group"><label>Lý do giảm trừ</label>@Html.TextBoxFor(x=>x.ReductionReason,new{@class="form-control"})</div></div>
 <div class="section-title"><span>Danh sách phụ tùng</span></div>
 <div class="hint" style="margin-bottom:8px">◉ Xem chi tiết &nbsp;&nbsp; 🔍 Lấy báo giá</div>

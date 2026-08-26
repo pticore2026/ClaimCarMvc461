@@ -26,6 +26,6 @@ Connection string mặc định kết nối tới MySQL tại `127.0.0.1:3306`, 
 
 ## Chạy trực tiếp với SQLite
 
-Đổi `Data.Mode` thành `SQLite` trong `ClaimCar.Web/Web.config` rồi chạy ứng dụng. Repository tự tạo file `ClaimCar.Web/App_Data/claimcar.db` và bảng cần thiết ở lần kết nối đầu tiên; không cần cài database server hay chạy script thủ công. Tài khoản chạy IIS cần quyền ghi thư mục `App_Data`.
+Đổi `Data.Mode` thành `SQLite` trong `ClaimCar.Web/Web.config` rồi chạy ứng dụng. Repository tự tạo file `ClaimCar.Web/App_Data/claimcar.db` và toàn bộ bảng cho hồ sơ chung, tổn thất/chi trả, báo giá ở lần kết nối đầu tiên; không cần cài database server hay chạy script thủ công. Dữ liệu chỉ xuất hiện sau khi tạo hồ sơ mới vì SQLite không tự nạp dữ liệu demo. Tài khoản chạy IIS cần quyền ghi thư mục `App_Data`.
 
 Xem `RUN-IIS.md` để chạy IIS thật và `docs/SDK-EXTENSIONS.md` để viết plugin.

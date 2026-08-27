@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SQLite;
 using System.IO;
 using System.Web.Hosting;
 using ClaimCar.Web.Models;
+using SQLiteCommand = Mono.Data.Sqlite.SqliteCommand;
+using SQLiteConnection = Mono.Data.Sqlite.SqliteConnection;
+using SQLiteDataReader = Mono.Data.Sqlite.SqliteDataReader;
+using SQLiteTransaction = Mono.Data.Sqlite.SqliteTransaction;
 
 namespace ClaimCar.Web.Repositories
 {

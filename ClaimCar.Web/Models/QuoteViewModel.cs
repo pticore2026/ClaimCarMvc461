@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 namespace ClaimCar.Web.Models
 {
     public class QuoteItem
@@ -28,8 +29,16 @@ namespace ClaimCar.Web.Models
         public decimal PaintTotal { get; set; }
         public decimal LaborTotal { get; set; }
         public decimal TowingTotal { get; set; }
+        [Required(ErrorMessage="Vui lòng nhập tỷ lệ giảm giá sửa chữa.")]
+        [Display(Name="Tỷ lệ giảm giá sửa chữa")]
         public decimal RepairDiscountPercent { get; set; }
+
+        [Required(ErrorMessage="Vui lòng nhập tỷ lệ giảm giá sơn.")]
+        [Display(Name="Tỷ lệ giảm giá sơn")]
         public decimal PaintDiscountPercent { get; set; }
+
+        [Required(ErrorMessage="Vui lòng nhập tỷ lệ giảm giá thay thế.")]
+        [Display(Name="Tỷ lệ giảm giá thay thế")]
         public decimal ReplacementDiscountPercent { get; set; }
         public decimal ReplacementDepreciationPercent { get; set; }
         public decimal SpecialDepreciationPercent { get; set; }

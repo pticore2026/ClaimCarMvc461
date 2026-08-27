@@ -22,6 +22,6 @@ if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.Validati
 <div class="form-group"><label>Giá trị xe / tiền bảo hiểm</label>@Html.TextBoxFor(x=>x.InsuredValue,new{@class="form-control right",type="number",step="1"})</div>
 </div>
 <div class="summary-strip"><div>Số hồ sơ: <strong>@(string.IsNullOrWhiteSpace(Model.ClaimNumber)?"(chưa cấp)":Model.ClaimNumber)</strong></div><div>Mã giám định viên: <strong>@(string.IsNullOrWhiteSpace(Model.SurveyorCode)?"(chưa gán)":Model.SurveyorCode)</strong></div></div>
-<div class="footer-actions"><button class="btn" type="submit">Lưu thông tin</button></div>}
+<div class="footer-actions"><button class="btn" type="submit">Tiếp theo</button></div>}
 @if(!isNew){using(Html.BeginForm("Delete","Claim",FormMethod.Post,new{onsubmit="return confirm('Xóa hồ sơ này?');",style="margin-top:-46px;display:inline-block"})){@Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.Id"/><button class="btn btn-danger" type="submit">Xóa hồ sơ</button>}}
 </div>

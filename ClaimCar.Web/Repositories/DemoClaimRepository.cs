@@ -14,6 +14,11 @@ namespace ClaimCar.Web.Repositories
         };
         private static readonly Dictionary<int, LossPaymentViewModel> Losses = new Dictionary<int, LossPaymentViewModel>();
         private static readonly Dictionary<int, QuoteViewModel> Quotes = new Dictionary<int, QuoteViewModel>();
+        private static readonly List<VehiclePolicy> Policies = new List<VehiclePolicy>
+        {
+            new VehiclePolicy{Id=1,PolicyNumber="0010TTN250004670",CertificateNumber="GCN-DEMO-001",LicensePlate="51L48238",EffectiveFrom=new DateTime(2026,1,1),EffectiveTo=new DateTime(2026,12,31),VehicleValue=991000000m,InsuredAmount=991000000m,Status="DA_CAP"},
+            new VehiclePolicy{Id=2,PolicyNumber="HD-DEMO-001",CertificateNumber="GCN-DEMO-002",LicensePlate="30A-123.45",EffectiveFrom=new DateTime(2026,1,1),EffectiveTo=new DateTime(2026,12,31),VehicleValue=700000000m,InsuredAmount=700000000m,Status="DA_CAP"}
+        };
         static DemoClaimRepository()
         {
             Losses[1] = BuildLoss(1);
@@ -34,6 +39,7 @@ namespace ClaimCar.Web.Repositories
         public void Update(Claim claim) { lock(Sync){ var i=Claims.FindIndex(x=>x.Id==claim.Id); if(i>=0) Claims[i]=CloneClaim(claim); } }
         public void Delete(int id) { lock(Sync){ Claims.RemoveAll(x=>x.Id==id); Losses.Remove(id); Quotes.Remove(id); } }
         public bool ClaimNumberExists(string n,int? exceptId) { lock(Sync){ return Claims.Any(x=>x.ClaimNumber==n && (!exceptId.HasValue || x.Id!=exceptId.Value)); } }
+        public VehiclePolicy GetVehiclePolicy(string policyNumber) { lock(Sync){ var x=Policies.FirstOrDefault(p=>string.Equals(p.PolicyNumber,policyNumber,StringComparison.OrdinalIgnoreCase));return x==null?null:new VehiclePolicy{Id=x.Id,PolicyNumber=x.PolicyNumber,CertificateNumber=x.CertificateNumber,LicensePlate=x.LicensePlate,ChassisNumber=x.ChassisNumber,EngineNumber=x.EngineNumber,Brand=x.Brand,Model=x.Model,EffectiveFrom=x.EffectiveFrom,EffectiveTo=x.EffectiveTo,VehicleValue=x.VehicleValue,InsuredAmount=x.InsuredAmount,Status=x.Status}; } }
         public LossPaymentViewModel GetLossPayment(int claimId) { lock(Sync){ LossPaymentViewModel x; if(!Losses.TryGetValue(claimId,out x)){x=BuildLoss(claimId);Losses[claimId]=x;} return CloneLoss(x); } }
         public void SaveLossPayment(LossPaymentViewModel model) { lock(Sync){ Losses[model.ClaimId]=CloneLoss(model); } }
         public QuoteViewModel GetQuote(int claimId) { lock(Sync){ QuoteViewModel x; if(!Quotes.TryGetValue(claimId,out x)){x=BuildQuote(claimId);Quotes[claimId]=x;} return CloneQuote(x); } }

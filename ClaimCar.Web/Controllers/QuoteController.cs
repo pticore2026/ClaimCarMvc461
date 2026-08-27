@@ -9,11 +9,12 @@ namespace ClaimCar.Web.Controllers
     public class QuoteController : Controller
     {
         private readonly ClaimService _service=new ClaimService();
-        public ActionResult Edit(int claimId){ViewBag.Claim=_service.Repository.Get(claimId);if(ViewBag.Claim==null)return HttpNotFound();return View(_service.Repository.GetQuote(claimId));}
+        public ActionResult Edit(int claimId){ViewBag.Claim=_service.Repository.Get(claimId);if(ViewBag.Claim==null)return HttpNotFound();ViewBag.ClaimId=claimId;return View(_service.Repository.GetQuote(claimId));}
         [HttpPost,ValidateAntiForgeryToken]
         public ActionResult Edit(QuoteViewModel m)
         {
             ViewBag.Claim=_service.Repository.Get(m.ClaimId);
+            ViewBag.ClaimId=m.ClaimId;
             m.Items=m.Items??new System.Collections.Generic.List<QuoteItem>();
             m.RepairTotal=m.Items.Sum(x=>x.PartPrice);
             m.PaintTotal=m.Items.Sum(x=>x.PaintCost);

@@ -8,8 +8,9 @@ namespace ClaimCar.Web.Controllers
     public class LossPaymentController : Controller
     {
         private readonly ClaimService _service=new ClaimService();
-        public ActionResult Edit(int claimId){ViewBag.Claim=_service.Repository.Get(claimId);if(ViewBag.Claim==null)return HttpNotFound();return View(_service.Repository.GetLossPayment(claimId));}
+        public ActionResult Edit(int claimId){ViewBag.Claim=_service.Repository.Get(claimId);if(ViewBag.Claim==null)return HttpNotFound();ViewBag.ClaimId=claimId;return View(_service.Repository.GetLossPayment(claimId));}
         [HttpPost,ValidateAntiForgeryToken]
-        public ActionResult Edit(LossPaymentViewModel m){ViewBag.Claim=_service.Repository.Get(m.ClaimId);if(!ModelState.IsValid)return View(m);try{var e=_service.SaveLoss(m);if(e!=null){ModelState.AddModelError("",e);return View(m);}TempData["Success"]="Đã lưu thông tin tổn thất/chi trả.";return RedirectToAction("Edit","Quote",new{claimId=m.ClaimId});}catch(Exception ex){ModelState.AddModelError("",ex.Message);return View(m);}}
+        public ActionResult Edit(LossPaymentViewModel m){ViewBag.Claim=_service.Repository.Get(m.ClaimId);ViewBag.ClaimId=m.ClaimId;EnsureLists(m);if(!ModelState.IsValid)return View(m);try{var e=_service.SaveLoss(m);if(e!=null){ModelState.AddModelError("",e);return View(m);}TempData["Success"]="Đã lưu thông tin tổn thất/chi trả.";return RedirectToAction("Edit","Quote",new{claimId=m.ClaimId});}catch(Exception ex){ModelState.AddModelError("",ex.Message);return View(m);}}
+        private static void EnsureLists(LossPaymentViewModel m){m.Coverages=m.Coverages??new System.Collections.Generic.List<CoverageLine>();m.OtherBeneficiaries=m.OtherBeneficiaries??new System.Collections.Generic.List<BeneficiaryLine>();m.ThirdParties=m.ThirdParties??new System.Collections.Generic.List<ThirdPartyLine>();}
     }
 }

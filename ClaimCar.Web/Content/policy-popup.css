@@ -1,0 +1,24 @@
+.modal-open{overflow:hidden}
+.policy-modal{display:none;position:fixed;z-index:1000;inset:0}
+.policy-modal.open{display:block}
+.policy-modal-backdrop{position:absolute;inset:0;background:rgba(12,31,48,.62)}
+.policy-modal-dialog{position:absolute;inset:6vh 5vw;background:#f5f8fb;border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.3);overflow:hidden}
+.policy-modal-close{position:absolute;right:14px;top:10px;z-index:2;width:38px;height:38px;border:0;border-radius:50%;background:#e7eef4;color:#31506b;font-size:27px;line-height:34px;cursor:pointer}
+.policy-modal-frame{width:100%;height:100%;border:0}
+.policy-popup-body{background:#f5f8fb;padding:22px;color:#24384d}
+.policy-popup-header{display:flex;align-items:center;justify-content:space-between;padding:0 54px 16px 0}
+.policy-popup-header h2{margin:0 0 6px;font-size:24px}
+.policy-status{background:#dff3e5;color:#27713a;border:1px solid #add8b9;border-radius:16px;padding:6px 14px;font-weight:700}
+.policy-segments{display:flex;gap:7px;border-bottom:1px solid #ccd9e4;margin-bottom:16px}
+.policy-segment{border:1px solid #c8d7e3;border-bottom:0;background:#e8f0f6;color:#35536d;border-radius:6px 6px 0 0;padding:10px 18px;font-weight:600;cursor:pointer}
+.policy-segment.active{background:#0b88ca;color:#fff;border-color:#0b88ca}
+.policy-panel{display:none}
+.policy-panel.active{display:block}
+.policy-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.policy-kpis>div,.policy-info-grid>div{background:#fff;border:1px solid #d8e2eb;border-radius:6px;padding:14px}
+.policy-kpis span,.policy-info-grid span{display:block;color:#73879c;font-size:12px;margin-bottom:6px}
+.policy-kpis strong{display:block;color:#087abf;font-size:17px}
+.policy-info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.policy-info-grid .wide{grid-column:1/-1}
+.policy-info-grid strong{font-size:15px;word-break:break-word}
+@media(max-width:800px){.policy-modal-dialog{inset:2vh 2vw}.policy-popup-body{padding:14px}.policy-segments{overflow-x:auto}.policy-segment{white-space:nowrap}.policy-kpis,.policy-info-grid{grid-template-columns:1fr}.policy-info-grid .wide{grid-column:auto}}

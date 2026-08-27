@@ -97,6 +97,7 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\ClaimController.cs" />
     <Compile Include="Controllers\LossPaymentController.cs" />
+    <Compile Include="Controllers\PolicyController.cs" />
     <Compile Include="Controllers\QuoteController.cs" />
     <Compile Include="Infrastructure\ClaimExtensionHost.cs" />
     <Compile Include="Infrastructure\ConfigLoginService.cs" />
@@ -105,6 +106,8 @@
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\LossPaymentViewModel.cs" />
     <Compile Include="Models\QuoteViewModel.cs" />
+    <Compile Include="Models\PolicyDetailViewModel.cs" />
+    <Compile Include="Models\VehiclePolicy.cs" />
     <Compile Include="Repositories\IClaimRepository.cs" />
     <Compile Include="Repositories\ClaimRepositoryFactory.cs" />
     <Compile Include="Repositories\DemoClaimRepository.cs" />
@@ -119,6 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\site.css" />
+    <Content Include="Content\policy-popup.css" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
     <Content Include="Views\Web.config" />
@@ -131,6 +135,8 @@
     <Content Include="Views\LossPayment\Edit.cshtml" />
     <Content Include="Views\Quote\Edit.cshtml" />
     <Content Include="Views\Quote\_MoneyBlock.cshtml" />
+    <Content Include="Views\Policy\Details.cshtml" />
+    <Content Include="Views\Policy\Popup.cshtml" />
     <Content Include="packages.config" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <Content Include="App_Data\ClaimExtensions\.gitkeep" />

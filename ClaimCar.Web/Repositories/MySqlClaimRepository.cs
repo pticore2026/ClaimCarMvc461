@@ -101,6 +101,20 @@ namespace ClaimCar.Web.Repositories
             }
         }
 
+        public VehiclePolicy GetVehiclePolicy(string policyNumber)
+        {
+            if(string.IsNullOrWhiteSpace(policyNumber)) return null;
+            using(var connection=new MySqlConnection(_connectionString))
+            using(var command=connection.CreateCommand())
+            {
+                command.CommandText=@"SELECT ID,SO_HOP_DONG,SO_DON_BAO_HIEM,BIEN_SO,SO_KHUNG,SO_MAY,NHAN_HIEU,DONG_XE,
+                    HIEU_LUC_TU,HIEU_LUC_DEN,GIA_TRI_XE,SO_TIEN_BAO_HIEM,TRANG_THAI
+                    FROM VEHICLE_POLICY WHERE SO_HOP_DONG=@number";
+                Add(command,"@number",policyNumber.Trim()); connection.Open();
+                using(var r=command.ExecuteReader())return r.Read()?new VehiclePolicy{Id=Convert.ToInt32(r["ID"]),PolicyNumber=r["SO_HOP_DONG"].ToString(),CertificateNumber=r["SO_DON_BAO_HIEM"].ToString(),LicensePlate=r["BIEN_SO"].ToString(),ChassisNumber=r["SO_KHUNG"].ToString(),EngineNumber=r["SO_MAY"].ToString(),Brand=r["NHAN_HIEU"].ToString(),Model=r["DONG_XE"].ToString(),EffectiveFrom=Convert.ToDateTime(r["HIEU_LUC_TU"]),EffectiveTo=Convert.ToDateTime(r["HIEU_LUC_DEN"]),VehicleValue=Convert.ToDecimal(r["GIA_TRI_XE"]),InsuredAmount=Convert.ToDecimal(r["SO_TIEN_BAO_HIEM"]),Status=r["TRANG_THAI"].ToString()}:null;
+            }
+        }
+
         public LossPaymentViewModel GetLossPayment(int claimId) { return new DemoClaimRepository().GetLossPayment(claimId); }
         public QuoteViewModel GetQuote(int claimId) { return new DemoClaimRepository().GetQuote(claimId); }
         public void SaveLossPayment(LossPaymentViewModel model) { throw ModuleNotImplemented("Tổn thất/Chi trả"); }

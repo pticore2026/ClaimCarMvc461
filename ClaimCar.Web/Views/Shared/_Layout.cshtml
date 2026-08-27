@@ -1,3 +1,4 @@
+@{ var currentClaimId=ViewBag.ClaimId==null?0:Convert.ToInt32(ViewBag.ClaimId); }
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -6,12 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewBag.Title - Bồi thường Xe</title>
     <link rel="stylesheet" href="@Url.Content("~/Content/site.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/policy-popup.css")" />
 </head>
 <body>
 <header class="topbar">
     <div class="brand">Bồi thường Xe / Tiếp nhận hồ sơ và báo giá</div>
     <nav class="top-actions">
-        <a href="#">📎 Đính kèm chứng từ</a><a href="#">📄 Giấy tờ kèm hồ sơ</a><a href="#">◉ TTin HĐ</a><a href="#">◉ Phí, BT</a><a href="#">Tiện ích ▾</a>
+        <a href="#">📎 Đính kèm chứng từ</a><a href="#">📄 Giấy tờ kèm hồ sơ</a><a href="@(currentClaimId>0?Url.Action("Popup","Policy",new{claimId=currentClaimId}):"#")" onclick="return openPolicyPopup(this.href)">◉ TTin HĐ</a><a href="#">◉ Phí, BT</a><a href="#">Tiện ích ▾</a>
         <a href="@Url.Action("Logout","Account")">Đăng xuất</a>
     </nav>
 </header>
@@ -19,5 +21,11 @@
     @if(TempData["Success"]!=null){<div class="notice notice-success">@TempData["Success"]</div>}
     @RenderBody()
 </main>
+<div id="policy-modal" class="policy-modal" aria-hidden="true"><div class="policy-modal-backdrop" onclick="closePolicyPopup()"></div><div class="policy-modal-dialog" role="dialog" aria-modal="true" aria-label="Thông tin hợp đồng bảo hiểm"><button class="policy-modal-close" type="button" onclick="closePolicyPopup()" aria-label="Đóng">×</button><iframe id="policy-modal-frame" class="policy-modal-frame" title="Thông tin hợp đồng bảo hiểm"></iframe></div></div>
+<script>
+function openPolicyPopup(url){if(!url||url.charAt(url.length-1)==='#')return false;var modal=document.getElementById('policy-modal');document.getElementById('policy-modal-frame').src=url;modal.className='policy-modal open';modal.setAttribute('aria-hidden','false');document.body.className+=' modal-open';return false;}
+function closePolicyPopup(){var modal=document.getElementById('policy-modal');modal.className='policy-modal';modal.setAttribute('aria-hidden','true');document.getElementById('policy-modal-frame').src='about:blank';document.body.className=document.body.className.replace(/\s*modal-open/g,'');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closePolicyPopup();});
+</script>
 </body>
 </html>

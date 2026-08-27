@@ -176,6 +176,21 @@ namespace ClaimCar.Web.Repositories
             }
         }
 
+        public VehiclePolicy GetVehiclePolicy(string policyNumber)
+        {
+            if(string.IsNullOrWhiteSpace(policyNumber)) return null;
+            using(var connection=OpenConnection())
+            using(var command=connection.CreateCommand())
+            {
+                command.CommandText=@"SELECT ID,SO_HOP_DONG,SO_DON_BAO_HIEM,MA_DON_VI,NGAY_CAP_DON,MA_KHACH_HANG,TEN_CHU_XE,LOAI_KHACH_HANG,SO_GIAY_TO,DIEN_THOAI,EMAIL,DIA_CHI,
+                    BIEN_SO,SO_KHUNG,SO_MAY,NHAN_HIEU,DONG_XE,NAM_SAN_XUAT,MUC_DICH_SU_DUNG,SO_CHO,HIEU_LUC_TU,HIEU_LUC_DEN,PHAM_VI_BAO_HIEM,NGOAI_TE,
+                    GIA_TRI_XE,SO_TIEN_BAO_HIEM,PHI_TRUOC_THUE,THUE_GTGT,TONG_PHI,MUC_KHAU_TRU,KENH_KHAI_THAC,CAN_BO_CAP_DON,TRANG_THAI,GHI_CHU
+                    FROM VEHICLE_POLICY WHERE SO_HOP_DONG=@number";
+                Add(command,"@number",policyNumber.Trim());
+                using(var reader=command.ExecuteReader()) return reader.Read()?MapPolicy(reader):null;
+            }
+        }
+
         public LossPaymentViewModel GetLossPayment(int claimId)
         {
             var model = new LossPaymentViewModel { ClaimId=claimId, Coverages=new List<CoverageLine>(), OtherBeneficiaries=new List<BeneficiaryLine>(), ThirdParties=new List<ThirdPartyLine>() };
@@ -307,5 +322,10 @@ namespace ClaimCar.Web.Repositories
         }
 
         private static DateTime? NullableDate(object value) { return value == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(value); }
+
+        private static VehiclePolicy MapPolicy(SQLiteDataReader r)
+        {
+            return new VehiclePolicy{Id=Int(r,"ID"),PolicyNumber=Text(r,"SO_HOP_DONG"),CertificateNumber=Text(r,"SO_DON_BAO_HIEM"),UnitCode=Text(r,"MA_DON_VI"),IssueDate=Convert.ToDateTime(r["NGAY_CAP_DON"]),CustomerCode=Text(r,"MA_KHACH_HANG"),OwnerName=Text(r,"TEN_CHU_XE"),CustomerType=Text(r,"LOAI_KHACH_HANG"),IdentityNumber=Text(r,"SO_GIAY_TO"),Phone=Text(r,"DIEN_THOAI"),Email=Text(r,"EMAIL"),Address=Text(r,"DIA_CHI"),LicensePlate=Text(r,"BIEN_SO"),ChassisNumber=Text(r,"SO_KHUNG"),EngineNumber=Text(r,"SO_MAY"),Brand=Text(r,"NHAN_HIEU"),Model=Text(r,"DONG_XE"),ManufactureYear=r["NAM_SAN_XUAT"]==DBNull.Value?(int?)null:Convert.ToInt32(r["NAM_SAN_XUAT"]),UsagePurpose=Text(r,"MUC_DICH_SU_DUNG"),Seats=r["SO_CHO"]==DBNull.Value?(int?)null:Convert.ToInt32(r["SO_CHO"]),EffectiveFrom=Convert.ToDateTime(r["HIEU_LUC_TU"]),EffectiveTo=Convert.ToDateTime(r["HIEU_LUC_DEN"]),CoverageScope=Text(r,"PHAM_VI_BAO_HIEM"),Currency=Text(r,"NGOAI_TE"),VehicleValue=Decimal(r,"GIA_TRI_XE"),InsuredAmount=Decimal(r,"SO_TIEN_BAO_HIEM"),PremiumBeforeTax=Decimal(r,"PHI_TRUOC_THUE"),VatAmount=Decimal(r,"THUE_GTGT"),TotalPremium=Decimal(r,"TONG_PHI"),Deductible=Decimal(r,"MUC_KHAU_TRU"),DistributionChannel=Text(r,"KENH_KHAI_THAC"),IssuedBy=Text(r,"CAN_BO_CAP_DON"),Status=Text(r,"TRANG_THAI"),Notes=Text(r,"GHI_CHU")};
+        }
     }
 }

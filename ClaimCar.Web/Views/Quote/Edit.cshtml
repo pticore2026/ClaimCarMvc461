@@ -24,5 +24,5 @@ if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.Validati
 <div class="section-title"><span>Tính toán tổng chi phí</span></div>
 <div class="form-grid" style="grid-template-columns:1fr 1fr 3fr"><div class="form-group"><label>Tổng khách hàng phải thanh toán</label><div class="money-input">@Html.TextBoxFor(x=>x.CustomerPaymentTotal,new{@class="form-control readonly",type="number"})<span class="money-unit">VNĐ</span></div></div><div class="form-group"><label>Tổng chi phí duyệt giá</label><div class="money-input">@Html.TextBoxFor(x=>x.ApprovedTotal,new{@class="form-control readonly",type="number"})<span class="money-unit">VNĐ</span></div></div></div>
 <div class="section-title"><span>Thông tin người thực hiện</span></div><div class="form-group" style="max-width:420px"><label>Checker</label>@Html.TextBoxFor(x=>x.Checker,new{@class="form-control readonly"})</div>
-<div class="footer-actions"><button class="btn" type="submit">Tính lại & Lưu</button></div>}
+<div class="footer-actions"><button class="btn btn-secondary js-previous-tab" type="button">Quay lại</button><button class="btn" type="submit">Tính lại & Lưu</button></div>}
 </div>

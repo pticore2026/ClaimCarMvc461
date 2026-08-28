@@ -26,6 +26,75 @@
 function openPolicyPopup(url){if(!url||url.charAt(url.length-1)==='#')return false;var modal=document.getElementById('policy-modal');document.getElementById('policy-modal-frame').src=url;modal.className='policy-modal open';modal.setAttribute('aria-hidden','false');document.body.className+=' modal-open';return false;}
 function closePolicyPopup(){var modal=document.getElementById('policy-modal');modal.className='policy-modal';modal.setAttribute('aria-hidden','true');document.getElementById('policy-modal-frame').src='about:blank';document.body.className=document.body.className.replace(/\s*modal-open/g,'');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closePolicyPopup();});
+document.addEventListener('DOMContentLoaded',function(){
+    var tabBar=document.querySelector('.tabs');
+    if(!tabBar)return;
+
+    var tabs=Array.prototype.slice.call(tabBar.querySelectorAll('.tab'));
+    var currentIndex=tabs.indexOf(tabBar.querySelector('.tab.active'));
+    var currentPanel=tabBar.nextElementSibling;
+    if(currentIndex<0||!currentPanel||currentPanel.className.indexOf('card')===-1)return;
+
+    var panels=[];
+    var loaders=[];
+    currentPanel.className+=' tab-panel';
+    panels[currentIndex]=currentPanel;
+
+    function showTab(index){
+        if(index<0||index>=tabs.length||!panels[index])return;
+        for(var i=0;i<tabs.length;i++){
+            tabs[i].classList.toggle('active',i===index);
+            if(panels[i])panels[i].style.display=i===index?'':'none';
+        }
+    }
+
+    function loadTab(index){
+        if(panels[index])return Promise.resolve(panels[index]);
+        if(loaders[index])return loaders[index];
+        var url=tabs[index].getAttribute('href');
+        if(!url||url==='#')return Promise.reject(new Error('Tab không có URL nội dung.'));
+        loaders[index]=fetch(url,{credentials:'same-origin'})
+            .then(function(response){if(!response.ok)throw new Error('Không tải được tab.');return response.text();})
+            .then(function(html){
+                var page=new DOMParser().parseFromString(html,'text/html');
+                var card=page.querySelector('.tabs + .card');
+                if(!card)throw new Error('Không tìm thấy nội dung tab.');
+                card=document.importNode(card,true);
+                card.className+=' tab-panel';
+                card.style.display='none';
+                currentPanel.parentNode.insertBefore(card,currentPanel.nextSibling);
+                panels[index]=card;
+                return card;
+            });
+        return loaders[index];
+    }
+
+    for(var i=0;i<tabs.length;i++)if(i!==currentIndex)loadTab(i).catch(function(){});
+
+    tabBar.addEventListener('click',function(e){
+        var tab=e.target.closest?e.target.closest('.tab'):null;
+        if(!tab)return;
+        e.preventDefault();
+        var index=tabs.indexOf(tab);
+        loadTab(index).then(function(){showTab(index);}).catch(function(){});
+    });
+
+    document.addEventListener('click',function(e){
+        var button=e.target.closest?e.target.closest('.js-next-tab'):null;
+        if(!button)return;
+        var index=tabs.indexOf(tabBar.querySelector('.tab.active'))+1;
+        if(index>=tabs.length)return;
+        loadTab(index).then(function(){showTab(index);}).catch(function(){});
+    });
+
+    document.addEventListener('click',function(e){
+        var button=e.target.closest?e.target.closest('.js-previous-tab'):null;
+        if(!button)return;
+        var index=tabs.indexOf(tabBar.querySelector('.tab.active'))-1;
+        if(index<0)return;
+        loadTab(index).then(function(){showTab(index);}).catch(function(){});
+    });
+});
 </script>
 </body>
 </html>

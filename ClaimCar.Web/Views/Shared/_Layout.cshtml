@@ -8,12 +8,14 @@
     <title>@ViewBag.Title - Bồi thường Xe</title>
     <link rel="stylesheet" href="@Url.Content("~/Content/site.css")" />
     <link rel="stylesheet" href="@Url.Content("~/Content/policy-popup.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-notification.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-utilities.css")" />
 </head>
 <body>
 <header class="topbar">
     <div class="brand">Bồi thường Xe / Tiếp nhận hồ sơ và báo giá</div>
     <nav class="top-actions">
-        <a href="#">📎 Đính kèm chứng từ</a><a href="#">📄 Giấy tờ kèm hồ sơ</a><a href="@(currentClaimId>0?Url.Action("Popup","Policy",new{claimId=currentClaimId}):"#")" onclick="return openPolicyPopup(this.href)">◉ TTin HĐ</a><a href="#">◉ Phí, BT</a><a href="#">Tiện ích ▾</a>
+        <a href="#">📎 Đính kèm chứng từ</a><a href="#">📄 Giấy tờ kèm hồ sơ</a><a href="#" data-popup-url="@Url.Action("Popup","Policy")" data-current-claim-id="@currentClaimId" onclick="return openPolicyPopup(this)">◉ TTin HĐ</a><a href="#">◉ Phí, BT</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>
         <a href="@Url.Action("Logout","Account")">Đăng xuất</a>
     </nav>
 </header>
@@ -22,11 +24,45 @@
     @RenderBody()
 </main>
 <div id="policy-modal" class="policy-modal" aria-hidden="true"><div class="policy-modal-backdrop" onclick="closePolicyPopup()"></div><div class="policy-modal-dialog" role="dialog" aria-modal="true" aria-label="Thông tin hợp đồng bảo hiểm"><button class="policy-modal-close" type="button" onclick="closePolicyPopup()" aria-label="Đóng">×</button><iframe id="policy-modal-frame" class="policy-modal-frame" title="Thông tin hợp đồng bảo hiểm"></iframe></div></div>
+<script src="@Url.Content("~/Scripts/claimcar-notification.js")"></script>
+<script src="@Url.Content("~/Scripts/claimcar-bulk-delete.js")"></script>
 <script>
-function openPolicyPopup(url){if(!url||url.charAt(url.length-1)==='#')return false;var modal=document.getElementById('policy-modal');document.getElementById('policy-modal-frame').src=url;modal.className='policy-modal open';modal.setAttribute('aria-hidden','false');document.body.className+=' modal-open';return false;}
+function openPolicyPopup(link){
+    var choices=document.querySelectorAll('.js-claim-select:checked');
+    var claimId=0;
+    if(document.querySelector('.js-claim-select')){
+        if(choices.length===0){ClaimCarNotification.warning('Vui lòng chọn một hồ sơ bồi thường để xem thông tin hợp đồng.');return false;}
+        if(choices.length>1){ClaimCarNotification.warning('Chỉ được chọn một hồ sơ bồi thường để xem thông tin hợp đồng.');return false;}
+        claimId=parseInt(choices[0].value,10)||0;
+    }else{
+        claimId=parseInt(link.getAttribute('data-current-claim-id'),10)||0;
+    }
+    if(!claimId){ClaimCarNotification.error('Không xác định được hồ sơ bồi thường để xem thông tin hợp đồng.');return false;}
+    var url=link.getAttribute('data-popup-url')+'?claimId='+encodeURIComponent(claimId);
+    var modal=document.getElementById('policy-modal');
+    document.getElementById('policy-modal-frame').src=url;
+    modal.className='policy-modal open';
+    modal.setAttribute('aria-hidden','false');
+    document.body.className+=' modal-open';
+    return false;
+}
 function closePolicyPopup(){var modal=document.getElementById('policy-modal');modal.className='policy-modal';modal.setAttribute('aria-hidden','true');document.getElementById('policy-modal-frame').src='about:blank';document.body.className=document.body.className.replace(/\s*modal-open/g,'');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closePolicyPopup();});
 document.addEventListener('DOMContentLoaded',function(){
+    var selectAll=document.querySelector('.js-claim-select-all');
+    var claimChoices=Array.prototype.slice.call(document.querySelectorAll('.js-claim-select'));
+    if(selectAll){
+        selectAll.addEventListener('change',function(){
+            for(var c=0;c<claimChoices.length;c++)claimChoices[c].checked=selectAll.checked;
+            selectAll.indeterminate=false;
+        });
+        for(var c=0;c<claimChoices.length;c++)claimChoices[c].addEventListener('change',function(){
+            var selected=document.querySelectorAll('.js-claim-select:checked').length;
+            selectAll.checked=claimChoices.length>0&&selected===claimChoices.length;
+            selectAll.indeterminate=selected>0&&selected<claimChoices.length;
+        });
+    }
+
     var tabBar=document.querySelector('.tabs');
     if(!tabBar)return;
 

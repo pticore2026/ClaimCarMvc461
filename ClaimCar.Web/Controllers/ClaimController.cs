@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
 using ClaimCar.Web.Models;
 using ClaimCar.Web.Services;
@@ -14,6 +16,13 @@ namespace ClaimCar.Web.Controllers
         [HttpPost,ValidateAntiForgeryToken]
         public ActionResult Edit(Claim x){if(x.Id>0)ViewBag.ClaimId=x.Id;if(ModelState.IsValid){var err=_service.ValidateClaim(x,x.Id==0?(int?)null:x.Id);if(err!=null)ModelState.AddModelError("",err);}if(!ModelState.IsValid)return View(x);try{var id=_service.SaveClaim(x);TempData["Success"]="Đã lưu thông tin chung.";return RedirectToAction("Edit",new{id=id});}catch(Exception ex){ModelState.AddModelError("",ex.Message);return View(x);}}
         public ActionResult Details(int id){return RedirectToAction("Edit",new{id=id});}
-        [HttpPost,ValidateAntiForgeryToken] public ActionResult Delete(int id){var x=_service.Repository.Get(id);if(x!=null)_service.DeleteClaim(x);TempData["Success"]="Đã xóa hồ sơ.";return RedirectToAction("Index");}
+        [HttpPost,ValidateAntiForgeryToken]
+        public ActionResult Delete(int id,bool continueValid=false){return DeleteJson(_service.DeleteClaims(new[]{id},User.Identity.Name,continueValid));}
+        [HttpPost,ValidateAntiForgeryToken]
+        public ActionResult BulkDelete(int[] ids,bool continueValid=false)
+        {
+            return DeleteJson(_service.DeleteClaims(ids,User.Identity.Name,continueValid));
+        }
+        private JsonResult DeleteJson(ClaimDeleteResult result){return Json(new{status=result.Status,message=result.Message,validCount=result.ValidCount,invalidCount=result.InvalidCount,deletedIds=result.DeletedIds,partial=result.Partial});}
     }
 }

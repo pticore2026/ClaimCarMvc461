@@ -29,9 +29,43 @@ namespace ClaimCar.Web.Services
         public int SaveClaim(Claim x)
         {
             var isNew=x.Id==0; var ctx=Ctx("Thông tin chung",isNew?ExtensionOperation.Create:ExtensionOperation.Update,x); _extensions.BeforeSave(ctx);
-            if(isNew)x.Id=_repo.Insert(x); else _repo.Update(x); _extensions.AfterSave(ctx); return x.Id;
+            if(isNew){x.CreatedBy=System.Web.HttpContext.Current==null?"system":System.Web.HttpContext.Current.User.Identity.Name;x.Id=_repo.Insert(x);} else _repo.Update(x); _extensions.AfterSave(ctx); return x.Id;
         }
         public void DeleteClaim(Claim x){var ctx=Ctx("Thông tin chung",ExtensionOperation.Delete,x);_extensions.BeforeDelete(ctx);_repo.Delete(x.Id);_extensions.AfterDelete(ctx);}
+        public ClaimDeleteResult DeleteClaims(System.Collections.Generic.IEnumerable<int> ids,string userName,bool continueValid)
+        {
+            var selected=(ids??new int[0]).Distinct().ToList();
+            if(selected.Count==0)return ClaimDeleteResult.Error("Vui lòng chọn ít nhất một hồ sơ bồi thường để xoá.");
+            var valid=new System.Collections.Generic.List<Claim>();var invalidStatus=0;var invalidOwner=0;var invalidPermission=0;var missing=0;
+            foreach(var id in selected)
+            {
+                var claim=_repo.Get(id);if(claim==null){missing++;continue;}
+                string reason;if(CanDelete(claim,userName,out reason))valid.Add(claim);
+                else if(reason=="status")invalidStatus++;else if(reason=="owner")invalidOwner++;else invalidPermission++;
+            }
+            var invalidCount=selected.Count-valid.Count;
+            if(valid.Count==0)return ClaimDeleteResult.Error("Không có hồ sơ hợp lệ để xoá. Hồ sơ phải ở trạng thái Mới tiếp nhận, do bạn tạo và tài khoản phải có quyền xoá.");
+            if(invalidCount>0&&!continueValid)
+            {
+                var reasons=new System.Collections.Generic.List<string>();
+                if(invalidStatus>0)reasons.Add(invalidStatus+" hồ sơ không ở trạng thái Mới tiếp nhận");
+                if(invalidOwner>0)reasons.Add(invalidOwner+" hồ sơ không do bạn tạo");
+                if(invalidPermission>0)reasons.Add(invalidPermission+" hồ sơ bạn không có quyền xoá");
+                if(missing>0)reasons.Add(missing+" hồ sơ không còn tồn tại");
+                return ClaimDeleteResult.Confirm(valid.Count,invalidCount,string.Join("; ",reasons)+". Bạn có muốn tiếp tục xoá các hồ sơ hợp lệ không?");
+            }
+            foreach(var claim in valid)DeleteClaim(claim);
+            return ClaimDeleteResult.Success(valid.Select(x=>x.Id).ToArray(),invalidCount>0);
+        }
+
+        private bool CanDelete(Claim claim,string userName,out string reason)
+        {
+            if(!string.Equals(claim.Status,"Mới tiếp nhận",StringComparison.OrdinalIgnoreCase)){reason="status";return false;}
+            var allowed=(ConfigurationManager.AppSettings["Claim.DeleteUsers"]??"").Split(',').Select(x=>x.Trim());
+            if(!allowed.Any(x=>string.Equals(x,userName,StringComparison.OrdinalIgnoreCase))){reason="permission";return false;}
+            if(!string.Equals(claim.CreatedBy,userName,StringComparison.OrdinalIgnoreCase)){reason="owner";return false;}
+            reason=null;return true;
+        }
         public string SaveLoss(LossPaymentViewModel x){var claim=_repo.Get(x.ClaimId);if(claim==null)return "Không tìm thấy hồ sơ bồi thường.";var policyError=ValidatePolicy(claim);if(policyError!=null)return policyError;var amountError=ValidateLossAmounts(x,claim);if(amountError!=null)return amountError;var ctx=Ctx("Tổn thất - Chi trả",ExtensionOperation.Update,x);var vr=_extensions.Validate(ctx);if(!vr.IsValid)return vr.Message;_extensions.BeforeSave(ctx);_repo.SaveLossPayment(x);_extensions.AfterSave(ctx);return null;}
         public string SaveQuote(QuoteViewModel x){var claim=_repo.Get(x.ClaimId);if(claim==null)return "Không tìm thấy hồ sơ bồi thường.";var policyError=ValidatePolicy(claim);if(policyError!=null)return policyError;var amountError=ValidateApprovedAmount(x,claim);if(amountError!=null)return amountError;var ctx=Ctx("Báo giá",ExtensionOperation.Update,x);var vr=_extensions.Validate(ctx);if(!vr.IsValid)return vr.Message;_extensions.BeforeSave(ctx);_repo.SaveQuote(x);_extensions.AfterSave(ctx);return null;}
         private static ExtensionContext Ctx(string module,ExtensionOperation op,object entity){return new ExtensionContext{Module=module,Operation=op,Entity=entity,UserName=System.Web.HttpContext.Current==null?"system":System.Web.HttpContext.Current.User.Identity.Name};}
@@ -90,5 +124,18 @@ namespace ClaimCar.Web.Services
         {
             return new string((value??"").Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
         }
+    }
+
+    public sealed class ClaimDeleteResult
+    {
+        public string Status { get; private set; }
+        public string Message { get; private set; }
+        public int ValidCount { get; private set; }
+        public int InvalidCount { get; private set; }
+        public int[] DeletedIds { get; private set; }
+        public bool Partial { get; private set; }
+        public static ClaimDeleteResult Error(string message){return new ClaimDeleteResult{Status="error",Message=message,DeletedIds=new int[0]};}
+        public static ClaimDeleteResult Confirm(int valid,int invalid,string message){return new ClaimDeleteResult{Status="confirm",Message=message,ValidCount=valid,InvalidCount=invalid,DeletedIds=new int[0]};}
+        public static ClaimDeleteResult Success(int[] ids,bool partial){return new ClaimDeleteResult{Status="success",Message=partial?"Đã xoá các hồ sơ hợp lệ; các hồ sơ không hợp lệ được giữ nguyên.":"Đã xoá thành công các hồ sơ đã chọn.",DeletedIds=ids,ValidCount=ids.Length,Partial=partial};}
     }
 }

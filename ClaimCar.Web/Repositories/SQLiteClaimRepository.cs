@@ -13,7 +13,7 @@ namespace ClaimCar.Web.Repositories
 {
     public sealed class SQLiteClaimRepository : IClaimRepository
     {
-        private const string Columns = "ID,MA_DON_VI,TEN_DON_VI,MA_KHU_VUC,TEN_KHU_VUC,BIEN_SO,NGAY_NHAP,NGAY_NHAP_CALL,SO_HOP_DONG,TINH_TRANG,NGAY_QUYET_DINH,NGAY_XAY_RA,NGAY_THONG_BAO,SO_HO_SO,MA_GDV,GIA_TRI_BH";
+        private const string Columns = "ID,MA_DON_VI,TEN_DON_VI,MA_KHU_VUC,TEN_KHU_VUC,BIEN_SO,NGAY_NHAP,NGAY_NHAP_CALL,SO_HOP_DONG,TINH_TRANG,NGAY_QUYET_DINH,NGAY_XAY_RA,NGAY_THONG_BAO,SO_HO_SO,MA_GDV,GIA_TRI_BH,NGUOI_TAO";
         private const string Schema = @"CREATE TABLE IF NOT EXISTS CLAIM_GENERAL (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             MA_DON_VI TEXT NOT NULL, TEN_DON_VI TEXT NOT NULL,
@@ -23,6 +23,7 @@ namespace ClaimCar.Web.Repositories
             NGAY_XAY_RA TEXT NOT NULL, NGAY_THONG_BAO TEXT NOT NULL,
             SO_HO_SO TEXT NOT NULL UNIQUE, MA_GDV TEXT NULL,
             GIA_TRI_BH NUMERIC NOT NULL DEFAULT 0,
+            NGUOI_TAO TEXT NOT NULL DEFAULT 'admin',
             CHECK (NGAY_THONG_BAO >= NGAY_XAY_RA));
             CREATE INDEX IF NOT EXISTS IX_CLAIM_GENERAL_SEARCH
             ON CLAIM_GENERAL(BIEN_SO, SO_HOP_DONG, TINH_TRANG);
@@ -110,6 +111,7 @@ namespace ClaimCar.Web.Repositories
             AppDomain.CurrentDomain.SetData("DataDirectory", appData);
             _connectionString = setting.ConnectionString;
             InitializeSchema();
+            EnsureClaimCreatorColumn();
         }
 
         public IList<Claim> Search(string keyword, string status)
@@ -146,8 +148,8 @@ namespace ClaimCar.Web.Repositories
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"INSERT INTO CLAIM_GENERAL
-                    (MA_DON_VI,TEN_DON_VI,MA_KHU_VUC,TEN_KHU_VUC,BIEN_SO,NGAY_NHAP,NGAY_NHAP_CALL,SO_HOP_DONG,TINH_TRANG,NGAY_QUYET_DINH,NGAY_XAY_RA,NGAY_THONG_BAO,SO_HO_SO,MA_GDV,GIA_TRI_BH)
-                    VALUES (@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o);
+                    (MA_DON_VI,TEN_DON_VI,MA_KHU_VUC,TEN_KHU_VUC,BIEN_SO,NGAY_NHAP,NGAY_NHAP_CALL,SO_HOP_DONG,TINH_TRANG,NGAY_QUYET_DINH,NGAY_XAY_RA,NGAY_THONG_BAO,SO_HO_SO,MA_GDV,GIA_TRI_BH,NGUOI_TAO)
+                    VALUES (@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o,@p);
                     SELECT last_insert_rowid();";
                 BindClaim(command, claim);
                 return Convert.ToInt32(command.ExecuteScalar());
@@ -275,6 +277,17 @@ namespace ClaimCar.Web.Repositories
 
         private void InitializeSchema() { Execute(Schema, command => { }); }
 
+        private void EnsureClaimCreatorColumn()
+        {
+            var exists=false;
+            using(var connection=OpenConnection()) using(var command=connection.CreateCommand())
+            {
+                command.CommandText="PRAGMA table_info(CLAIM_GENERAL)";
+                using(var reader=command.ExecuteReader()) while(reader.Read()) if(string.Equals(reader["name"].ToString(),"NGUOI_TAO",StringComparison.OrdinalIgnoreCase)){exists=true;break;}
+            }
+            if(!exists)Execute("ALTER TABLE CLAIM_GENERAL ADD COLUMN NGUOI_TAO TEXT NOT NULL DEFAULT 'admin'",command=>{});
+        }
+
         private SQLiteConnection OpenConnection()
         {
             var connection = new SQLiteConnection(_connectionString);
@@ -305,6 +318,7 @@ namespace ClaimCar.Web.Repositories
             Add(command, "@i", claim.Status); Add(command, "@j", IsoDate(claim.DecisionDate));
             Add(command, "@k", claim.AccidentDate.ToString("o")); Add(command, "@l", claim.NotificationDate.ToString("o"));
             Add(command, "@m", claim.ClaimNumber); Add(command, "@n", claim.SurveyorCode); Add(command, "@o", claim.InsuredValue);
+            Add(command, "@p", string.IsNullOrWhiteSpace(claim.CreatedBy) ? "admin" : claim.CreatedBy);
         }
 
         private static object IsoDate(DateTime? value) { return value.HasValue ? (object)value.Value.ToString("o") : DBNull.Value; }
@@ -317,7 +331,7 @@ namespace ClaimCar.Web.Repositories
                 EntryDate=Convert.ToDateTime(reader["NGAY_NHAP"]), CallEntryDate=NullableDate(reader["NGAY_NHAP_CALL"]), PolicyNumber=reader["SO_HOP_DONG"].ToString(),
                 Status=reader["TINH_TRANG"].ToString(), DecisionDate=NullableDate(reader["NGAY_QUYET_DINH"]), AccidentDate=Convert.ToDateTime(reader["NGAY_XAY_RA"]),
                 NotificationDate=Convert.ToDateTime(reader["NGAY_THONG_BAO"]), ClaimNumber=reader["SO_HO_SO"].ToString(), SurveyorCode=reader["MA_GDV"].ToString(),
-                InsuredValue=reader["GIA_TRI_BH"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["GIA_TRI_BH"])
+                InsuredValue=reader["GIA_TRI_BH"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["GIA_TRI_BH"]), CreatedBy=reader["NGUOI_TAO"].ToString()
             };
         }
 

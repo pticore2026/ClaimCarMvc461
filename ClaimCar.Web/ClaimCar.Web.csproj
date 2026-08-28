@@ -123,6 +123,10 @@
   <ItemGroup>
     <Content Include="Content\site.css" />
     <Content Include="Content\policy-popup.css" />
+    <Content Include="Content\claimcar-notification.css" />
+    <Content Include="Scripts\claimcar-notification.js" />
+    <Content Include="Content\claimcar-utilities.css" />
+    <Content Include="Scripts\claimcar-bulk-delete.js" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
     <Content Include="Views\Web.config" />

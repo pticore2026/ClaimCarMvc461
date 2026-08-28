@@ -35,5 +35,6 @@ namespace ClaimCar.Web.Models
         [StringLength(30), Display(Name="Mã giám định viên")]
         public string SurveyorCode { get; set; }
         public decimal InsuredValue { get; set; }
+        public string CreatedBy { get; set; }
     }
 }

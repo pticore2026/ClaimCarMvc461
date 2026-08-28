@@ -23,5 +23,5 @@ if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.Validati
 </div>
 <div class="summary-strip"><div>Số hồ sơ: <strong>@(string.IsNullOrWhiteSpace(Model.ClaimNumber)?"(chưa cấp)":Model.ClaimNumber)</strong></div><div>Mã giám định viên: <strong>@(string.IsNullOrWhiteSpace(Model.SurveyorCode)?"(chưa gán)":Model.SurveyorCode)</strong></div></div>
 <div class="footer-actions"><button class="btn js-next-tab" type="button">Tiếp theo</button></div>}
-@if(!isNew){using(Html.BeginForm("Delete","Claim",FormMethod.Post,new{onsubmit="return confirm('Xóa hồ sơ này?');",style="margin-top:-46px;display:inline-block"})){@Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.Id"/><button class="btn btn-danger" type="submit">Xóa hồ sơ</button>}}
+@if(!isNew){using(Html.BeginForm("Delete","Claim",FormMethod.Post,new{@class="js-single-delete-form",style="margin-top:-46px;display:inline-block"})){@Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.Id"/><button class="btn btn-danger js-delete-claim" type="button" data-id="@Model.Id" data-url="@Url.Action("Delete","Claim")" data-success-url="@Url.Action("Index","Claim")">Xóa hồ sơ</button>}}
 </div>

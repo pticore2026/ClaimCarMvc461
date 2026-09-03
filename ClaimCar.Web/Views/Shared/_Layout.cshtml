@@ -27,6 +27,7 @@
 <div id="policy-modal" class="policy-modal" aria-hidden="true"><div class="policy-modal-backdrop" onclick="closePolicyPopup()"></div><div class="policy-modal-dialog" role="dialog" aria-modal="true" aria-label="Thông tin hợp đồng bảo hiểm"><button class="policy-modal-close" type="button" onclick="closePolicyPopup()" aria-label="Đóng">×</button><iframe id="policy-modal-frame" class="policy-modal-frame" title="Thông tin hợp đồng bảo hiểm"></iframe></div></div>
 <script src="@Url.Content("~/Scripts/claimcar-notification.js")"></script>
 <script src="@Url.Content("~/Scripts/claimcar-bulk-delete.js")"></script>
+<script src="@Url.Content("~/Scripts/loss-code-picker.js")"></script>
 <script>
 function openPolicyPopup(link){
     var choices=document.querySelectorAll('.js-claim-select:checked');

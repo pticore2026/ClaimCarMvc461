@@ -124,6 +124,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\site.css" />
+    <Content Include="Scripts\loss-code-picker.js" />
     <Content Include="Content\policy-popup.css" />
     <Content Include="Content\claimcar-notification.css" />
     <Content Include="Scripts\claimcar-notification.js" />

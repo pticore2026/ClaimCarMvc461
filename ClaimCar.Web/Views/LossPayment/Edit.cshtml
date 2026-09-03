@@ -1,5 +1,5 @@
 @model ClaimCar.Web.Models.LossPaymentViewModel
-@{ ViewBag.Title="Tổn thất / Chi trả"; var claim=(ClaimCar.Web.Models.Claim)ViewBag.Claim; }
+@{ ViewBag.Title="Tổn thất / Chi trả"; var claim=(ClaimCar.Web.Models.Claim)ViewBag.Claim; var eventCodes=new[]{"Không sự kiện 2025","Bão số 12 - Fengshen","Bão số 11 - Matmo","Bão số 10 - Bualai","Bão số 2 - Yagi"}; }
 <div class="toolbar"><div><h1>Tổn thất / Chi trả</h1><div class="muted">Xác định phạm vi bảo hiểm, trách nhiệm, gara và luồng thanh toán.</div></div><a class="btn btn-secondary" href="@Url.Action("Index","Claim")">Danh sách hồ sơ</a></div>
 <div class="tabs"><a class="tab" href="@Url.Action("Edit","Claim",new{id=Model.ClaimId})">Thông tin chung</a><a class="tab active" href="#">Tổn thất / Chi trả</a><a class="tab" href="@Url.Action("Edit","Quote",new{claimId=Model.ClaimId})">Báo giá</a></div>
 <div class="card">
@@ -12,105 +12,20 @@ if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.Validati
 <div class="form-group code-picker-field">
     <label class="required">Nguyên nhân</label>
     @Html.HiddenFor(x=>x.CauseCode)
-    <button type="button" id="CauseCodeDisplay" class="form-control code-picker-trigger" data-picker="cause">@(string.IsNullOrWhiteSpace(Model.CauseCode)?"-- Chọn mã nguyên nhân --":Model.CauseCode)</button>
+    <button type="button" id="CauseCodeDisplay" class="form-control code-picker-trigger" data-picker="cause" data-field="CauseCode" data-title="Lựa chọn mã nguyên nhân" data-placeholder="-- Chọn mã nguyên nhân --">@(string.IsNullOrWhiteSpace(Model.CauseCode)?"-- Chọn mã nguyên nhân --":Model.CauseCode)</button>
 </div>
 <div class="form-group code-picker-field">
     <label>Mã hành vi</label>
     @Html.HiddenFor(x=>x.BehaviorCode)
-    <button type="button" id="BehaviorCodeDisplay" class="form-control code-picker-trigger" data-picker="behavior">@(string.IsNullOrWhiteSpace(Model.BehaviorCode)?"-- Chọn mã hành vi --":Model.BehaviorCode)</button>
+    <button type="button" id="BehaviorCodeDisplay" class="form-control code-picker-trigger" data-picker="behavior" data-field="BehaviorCode" data-title="Lựa chọn mã hành vi" data-placeholder="-- Chọn mã hành vi --">@(string.IsNullOrWhiteSpace(Model.BehaviorCode)?"-- Chọn mã hành vi --":Model.BehaviorCode)</button>
 </div>
-<div class="form-group"><label class="required">Khu vực</label>@Html.TextBoxFor(x=>x.AreaCode,new{@class="form-control"})</div><div class="form-group"><label class="required">Sự kiện</label>@Html.TextBoxFor(x=>x.EventCode,new{@class="form-control"})</div><div class="form-group"><label>CVăn TBTN-YCB</label>@Html.TextBoxFor(x=>x.TbtnYcbReference,new{@class="form-control"})</div><div class="form-group"><label>Giá trị xe GCN</label>@Html.TextBoxFor(x=>x.VehicleCertificateValue,new{@class="form-control readonly right",type="number"})</div></div>
+<div class="form-group code-picker-field">
+    <label class="required">Khu vực</label>
+    @Html.HiddenFor(x=>x.AreaCode)
+    <button type="button" id="AreaCodeDisplay" class="form-control code-picker-trigger" data-picker="area" data-field="AreaCode" data-title="Lựa chọn khu vực" data-placeholder="-- Chọn khu vực --">@(string.IsNullOrWhiteSpace(Model.AreaCode)?"-- Chọn khu vực --":Model.AreaCode)</button>
+</div><div class="form-group"><label class="required">Sự kiện</label>@Html.DropDownListFor(x=>x.EventCode,new SelectList(eventCodes,Model.EventCode),"-- Chọn sự kiện --",new{@class="form-control"})</div><div class="form-group"><label>CVăn TBTN-YCB</label>@Html.TextBoxFor(x=>x.TbtnYcbReference,new{@class="form-control"})</div></div>
 <div class="three-col"><div class="form-group"><label class="required">Diễn biến tai nạn</label>@Html.TextAreaFor(x=>x.AccidentDescription,new{@class="form-control textarea"})</div><div class="form-group"><label class="required">Mô tả nguyên nhân</label>@Html.TextAreaFor(x=>x.CauseDescription,new{@class="form-control textarea"})</div><div class="form-group"><label class="required">Mô tả hậu quả</label>@Html.TextAreaFor(x=>x.ConsequenceDescription,new{@class="form-control textarea"})</div></div>
-<div style="height:12px"></div><div class="six-col"><div class="form-group"><label>Mã Gara sửa chữa</label>@Html.TextBoxFor(x=>x.GarageCode,new{@class="form-control readonly"})</div><div class="form-group" style="grid-column:span 3"><label>Tên Gara</label>@Html.TextBoxFor(x=>x.GarageName,new{@class="form-control readonly"})</div><div class="form-group"><label>Phone Gara</label>@Html.TextBoxFor(x=>x.GaragePhone,new{@class="form-control"})</div><div class="form-group"><label>Email Gara</label>@Html.TextBoxFor(x=>x.GarageEmail,new{@class="form-control"})</div><div class="form-group"><label>Thanh toán qua Gara</label><select class="form-control" name="PayThroughGarage"><option value="true" @(Model.PayThroughGarage?"selected":"")>Có</option><option value="false" @(!Model.PayThroughGarage?"selected":"")>Không</option></select></div><div class="form-group"><label>Đòi quỹ hiệp hội</label><select class="form-control" name="AssociationFund"><option value="false" @(!Model.AssociationFund?"selected":"")>Không</option><option value="true" @(Model.AssociationFund?"selected":"")>Có</option></select></div></div>
+<div style="height:12px"></div><div class="six-col"><div class="form-group"><label>Mã Gara sửa chữa</label>@Html.HiddenFor(x=>x.GarageCode)<button type="button" id="GarageCodeDisplay" class="form-control code-picker-trigger garage-picker-trigger">@(string.IsNullOrWhiteSpace(Model.GarageCode)?"-- Chọn Gara --":Model.GarageCode)</button></div><div class="form-group" style="grid-column:span 3"><label>Tên Gara</label>@Html.TextBoxFor(x=>x.GarageName,new{@class="form-control readonly",@readonly="readonly"})</div><div class="form-group"><label>Phone Gara</label>@Html.TextBoxFor(x=>x.GaragePhone,new{@class="form-control"})</div><div class="form-group"><label>Email Gara</label>@Html.TextBoxFor(x=>x.GarageEmail,new{@class="form-control"})</div><div class="form-group"><label>Thanh toán qua Gara</label><select class="form-control" name="PayThroughGarage"><option value="true" @(Model.PayThroughGarage?"selected":"")>Có</option><option value="false" @(!Model.PayThroughGarage?"selected":"")>Không</option></select></div><div class="form-group"><label>Đòi quỹ hiệp hội</label><select class="form-control" name="AssociationFund"><option value="false" @(!Model.AssociationFund?"selected":"")>Không</option><option value="true" @(Model.AssociationFund?"selected":"")>Có</option></select></div></div>
 <div class="two-col"><div><div class="section-title"><span>ĐỐI TƯỢNG HƯỞNG KHÁC</span></div><table class="grid-table"><thead><tr><th>MÃ</th><th>ĐỐI TƯỢNG HƯỞNG KHÁC</th></tr></thead><tbody>@for(var i=0;i<Model.OtherBeneficiaries.Count;i++){<tr>@Html.HiddenFor(x=>x.OtherBeneficiaries[i].Id)<td>@Html.TextBoxFor(x=>x.OtherBeneficiaries[i].Code,new{@class="form-control"})</td><td>@Html.TextBoxFor(x=>x.OtherBeneficiaries[i].Name,new{@class="form-control"})</td></tr>}</tbody></table></div><div><div class="section-title"><span>PHẢI ĐÒI NGƯỜI THỨ 3</span></div><table class="grid-table"><thead><tr><th>ĐỐI TƯỢNG</th><th>N.TỆ</th><th>TIỀN BẢO HIỂM</th></tr></thead><tbody>@if(Model.ThirdParties.Count==0){<tr><td colspan="3" class="muted center">Chưa có dữ liệu</td></tr>}@for(var i=0;i<Model.ThirdParties.Count;i++){<tr><td>@Html.TextBoxFor(x=>x.ThirdParties[i].Name,new{@class="form-control"})</td><td>@Html.TextBoxFor(x=>x.ThirdParties[i].Currency,new{@class="form-control"})</td><td>@Html.TextBoxFor(x=>x.ThirdParties[i].Amount,new{@class="form-control right"})</td></tr>}</tbody></table></div></div>
 <div class="footer-actions"><button class="btn btn-secondary js-previous-tab" type="button">Quay lại</button><button class="btn js-next-tab" type="button">Tiếp theo</button></div>}
 </div>
-<div id="CodePickerModal" class="code-picker-modal" aria-hidden="true">
-    <div class="code-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="CodePickerTitle">
-        <div class="code-picker-header"><h2 id="CodePickerTitle">Lựa chọn mã</h2><button type="button" class="code-picker-close" aria-label="Đóng">×</button></div>
-        <div class="code-picker-columns">
-            <div class="code-picker-column"><h3>Mã cấp 1</h3><div id="LevelOneChoices" class="code-choice-list"></div></div>
-            <div class="code-picker-column"><h3>Mã cấp 2</h3><div id="LevelTwoChoices" class="code-choice-list"><div class="code-picker-empty">Vui lòng chọn mã cấp 1</div></div></div>
-        </div>
-        <div class="code-picker-footer"><button type="button" id="ClearCodeChoice" class="btn btn-secondary">Xoá lựa chọn</button><button type="button" class="btn code-picker-close">Đóng</button></div>
-    </div>
-</div>
-<script>
-(function () {
-    var catalogs = {
-        cause: [
-            { name: 'Đâm, va', items: [['NNTT.1.1', 'Đâm va vật cố định'], ['NNTT.1.2', 'Đâm va khác']] },
-            { name: 'Thuỷ kích', items: [['NNTT.10', 'Thuỷ kích']] }
-        ],
-        behavior: [
-            { name: 'Chạy quá tốc độ cho phép', items: [['HV.1.1', 'Chạy quá tốc độ cho phép 10%'], ['HV.1.2', 'Chạy quá tốc độ cho phép từ 10%-20%'], ['HV.1.3', 'Chạy quá tốc độ cho phép từ 20% đến 30%']] },
-            { name: 'Chở quá trọng tải cho phép', items: [['HV.2.1', 'Chở quá trọng tải cho phép'], ['HV.2.2', 'Chở quá trọng tải cho phép 10% đến 20%'], ['HV.2.3', 'Chở quá trọng tải cho phép từ 20% đến 30%']] },
-            { name: 'Chở quá số người cho phép', items: [['HV.3.1', 'Chở quá số người cho phép 10%'], ['HV.3.2', 'Chở quá số người cho phép từ 10% đến 20%'], ['HV.3.3', 'Chở quá số người cho phép từ 20% đến 30%']] }
-        ]
-    };
-    var modal = document.getElementById('CodePickerModal');
-    var levelOne = document.getElementById('LevelOneChoices');
-    var levelTwo = document.getElementById('LevelTwoChoices');
-    var activePicker = '';
-
-    function makeChoice(text, className, action) {
-        var button = document.createElement('button');
-        button.type = 'button';
-        button.className = className;
-        button.textContent = text;
-        button.onclick = action;
-        return button;
-    }
-    function renderLevelTwo(group, selectedButton) {
-        levelTwo.innerHTML = '';
-        var firstChoices = levelOne.getElementsByTagName('button');
-        for (var i = 0; i < firstChoices.length; i++) firstChoices[i].className = 'code-choice';
-        selectedButton.className = 'code-choice selected';
-        for (var j = 0; j < group.items.length; j++) {
-            (function (item) {
-                levelTwo.appendChild(makeChoice(item[0] + ' - ' + item[1], 'code-choice', function () {
-                    var fieldId = activePicker === 'cause' ? 'CauseCode' : 'BehaviorCode';
-                    document.getElementById(fieldId).value = item[0];
-                    document.getElementById(fieldId + 'Display').textContent = item[0] + ' - ' + item[1];
-                    closePicker();
-                }));
-            }(group.items[j]));
-        }
-    }
-    function openPicker(type) {
-        activePicker = type;
-        document.getElementById('CodePickerTitle').textContent = type === 'cause' ? 'Lựa chọn mã nguyên nhân' : 'Lựa chọn mã hành vi';
-        levelOne.innerHTML = '';
-        levelTwo.innerHTML = '<div class="code-picker-empty">Vui lòng chọn mã cấp 1</div>';
-        for (var i = 0; i < catalogs[type].length; i++) {
-            (function (group) {
-                var button = makeChoice(group.name, 'code-choice', function () { renderLevelTwo(group, button); });
-                levelOne.appendChild(button);
-            }(catalogs[type][i]));
-        }
-        modal.className = 'code-picker-modal open';
-        modal.setAttribute('aria-hidden', 'false');
-    }
-    function closePicker() {
-        modal.className = 'code-picker-modal';
-        modal.setAttribute('aria-hidden', 'true');
-    }
-    var triggers = document.querySelectorAll('.code-picker-trigger');
-    for (var i = 0; i < triggers.length; i++) {
-        triggers[i].onclick = function () { openPicker(this.getAttribute('data-picker')); };
-    }
-    var closeButtons = document.querySelectorAll('.code-picker-close');
-    for (var j = 0; j < closeButtons.length; j++) closeButtons[j].onclick = closePicker;
-    document.getElementById('ClearCodeChoice').onclick = function () {
-        var fieldId = activePicker === 'cause' ? 'CauseCode' : 'BehaviorCode';
-        document.getElementById(fieldId).value = '';
-        document.getElementById(fieldId + 'Display').textContent = activePicker === 'cause' ? '-- Chọn mã nguyên nhân --' : '-- Chọn mã hành vi --';
-        closePicker();
-    };
-    modal.onclick = function (event) { if (event.target === modal) closePicker(); };
-    document.onkeydown = function (event) {
-        event = event || window.event;
-        if (event.keyCode === 27) closePicker();
-    }
-}());
-</script>

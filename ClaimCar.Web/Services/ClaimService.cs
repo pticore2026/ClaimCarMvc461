@@ -17,7 +17,7 @@ namespace ClaimCar.Web.Services
         public string ValidateClaim(Claim x,int? exceptId)
         {
             if(x.NotificationDate < x.AccidentDate) return "Ngày thông báo không được trước ngày xảy ra.";
-            if(_repo.ClaimNumberExists(x.ClaimNumber,exceptId)) return "Số hồ sơ đã tồn tại.";
+            if(!string.IsNullOrWhiteSpace(x.ClaimNumber) && _repo.ClaimNumberExists(x.ClaimNumber.Trim(),exceptId)) return "Số hồ sơ đã tồn tại.";
             if(!exceptId.HasValue)
             {
                 var policyError=ValidatePolicy(x);
@@ -28,6 +28,7 @@ namespace ClaimCar.Web.Services
         }
         public int SaveClaim(Claim x)
         {
+            x.ClaimNumber=string.IsNullOrWhiteSpace(x.ClaimNumber)?GenerateClaimNumber():x.ClaimNumber.Trim();
             var isNew=x.Id==0; var ctx=Ctx("Thông tin chung",isNew?ExtensionOperation.Create:ExtensionOperation.Update,x); _extensions.BeforeSave(ctx);
             if(isNew){x.CreatedBy=System.Web.HttpContext.Current==null?"system":System.Web.HttpContext.Current.User.Identity.Name;x.Id=_repo.Insert(x);} else _repo.Update(x); _extensions.AfterSave(ctx); return x.Id;
         }
@@ -69,7 +70,6 @@ namespace ClaimCar.Web.Services
         public string SaveLoss(LossPaymentViewModel x){var claim=_repo.Get(x.ClaimId);if(claim==null)return "Không tìm thấy hồ sơ bồi thường.";var policyError=ValidatePolicy(claim);if(policyError!=null)return policyError;var amountError=ValidateLossAmounts(x,claim);if(amountError!=null)return amountError;var ctx=Ctx("Tổn thất - Chi trả",ExtensionOperation.Update,x);var vr=_extensions.Validate(ctx);if(!vr.IsValid)return vr.Message;_extensions.BeforeSave(ctx);_repo.SaveLossPayment(x);_extensions.AfterSave(ctx);return null;}
         public string SaveQuote(QuoteViewModel x){var claim=_repo.Get(x.ClaimId);if(claim==null)return "Không tìm thấy hồ sơ bồi thường.";var policyError=ValidatePolicy(claim);if(policyError!=null)return policyError;var amountError=ValidateApprovedAmount(x,claim);if(amountError!=null)return amountError;var ctx=Ctx("Báo giá",ExtensionOperation.Update,x);var vr=_extensions.Validate(ctx);if(!vr.IsValid)return vr.Message;_extensions.BeforeSave(ctx);_repo.SaveQuote(x);_extensions.AfterSave(ctx);return null;}
         private static ExtensionContext Ctx(string module,ExtensionOperation op,object entity){return new ExtensionContext{Module=module,Operation=op,Entity=entity,UserName=System.Web.HttpContext.Current==null?"system":System.Web.HttpContext.Current.User.Identity.Name};}
-
         private string ValidatePolicy(Claim claim)
         {
             var policy=_repo.GetVehiclePolicy(claim.PolicyNumber);
@@ -124,9 +124,17 @@ namespace ClaimCar.Web.Services
         {
             return new string((value??"").Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
         }
+
+        private string GenerateClaimNumber()
+        {
+            string number;
+            do { number="HS-"+DateTime.Now.ToString("yyyyMMdd")+"-"+Guid.NewGuid().ToString("N").Substring(0,8).ToUpperInvariant(); }
+            while(_repo.ClaimNumberExists(number,null));
+            return number;
+        }
     }
 
-    public sealed class ClaimDeleteResult
+public sealed class ClaimDeleteResult
     {
         public string Status { get; private set; }
         public string Message { get; private set; }

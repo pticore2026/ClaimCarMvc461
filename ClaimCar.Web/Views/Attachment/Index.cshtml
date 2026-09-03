@@ -1,0 +1,21 @@
+@model ClaimCar.Web.Models.AttachmentViewModel
+@{ ViewBag.Title="Đính kèm chứng từ"; }
+<div class="toolbar"><div><h1>Đính kèm chứng từ</h1><div class="muted">Quản lý file và hình ảnh theo số hồ sơ.</div></div><a class="btn btn-secondary" href="@Url.Action("Index","Claim")">Danh sách hồ sơ</a></div>
+@if(TempData["AttachmentError"]!=null){<div class="notice notice-error">@TempData["AttachmentError"]</div>}
+<div class="card">
+@using(Html.BeginForm("Index","Attachment",FormMethod.Get,new{@class="attachment-filter"})){
+<div class="form-group"><label>Số hồ sơ</label><select class="form-control" name="claimId" onchange="this.form.submit()">@if(Model.Claims.Count==0){<option>Chưa có hồ sơ</option>}@foreach(var claim in Model.Claims){<option value="@claim.Id" @(Model.ClaimId==claim.Id?"selected":"")>@claim.ClaimNumber</option>}</select></div>
+<div class="form-group"><label>Loại</label><select class="form-control" name="type" onchange="this.form.submit()"><option value="all" @(Model.Type=="all"?"selected":"")>Tất cả</option>@foreach(var category in Model.Categories){<option value="@category.Code" @(Model.Type==category.Code?"selected":"")>@category.Name</option>}</select></div>
+<div class="form-group"><label>Sắp xếp</label><select class="form-control" name="sort" onchange="this.form.submit()"><option value="default" @(Model.Sort=="default"?"selected":"")>Mặc định</option><option value="name-asc" @(Model.Sort=="name-asc"?"selected":"")>Tên A-Z</option><option value="name-desc" @(Model.Sort=="name-desc"?"selected":"")>Tên Z-A</option></select></div>
+}
+@if(Model.ClaimId.HasValue){using(Html.BeginForm("Upload","Attachment",FormMethod.Post,new{enctype="multipart/form-data",@class="attachment-upload"})){@Html.AntiForgeryToken()<input type="hidden" name="claimId" value="@Model.ClaimId"/><div class="form-group"><label>Loại chứng từ tải lên</label><select class="form-control" name="type">@foreach(var category in Model.Categories){<option value="@category.Code" @(Model.Type==category.Code?"selected":"")>@category.Name</option>}</select></div><div class="form-group"><label>Chọn file (tối đa 20 MB)</label><input class="form-control file-input" type="file" name="file"/></div><button class="btn" type="submit">Tải file lên</button>}}
+</div>
+<div class="card"><div class="section-heading"><h2>Danh sách file</h2><span class="muted">@Model.Files.Count file</span></div>
+<table class="grid-table"><thead><tr><th>Tên file</th><th>Loại</th><th>Dung lượng</th><th>Ngày tải lên</th><th></th></tr></thead><tbody>
+@if(Model.Files.Count==0){<tr><td colspan="5" class="empty-state">Chưa có file phù hợp.</td></tr>}
+@foreach(var file in Model.Files){<tr><td><strong>@file.FileName</strong></td><td>@file.CategoryName</td><td class="right">@((file.Size/1024.0).ToString("N1")) KB</td><td class="center">@file.UploadedAt.ToString("dd/MM/yyyy HH:mm")</td><td class="actions"><a class="btn btn-small" href="@Url.Action("ViewFile",new{claimId=Model.ClaimId,type=file.CategoryCode,fileName=file.FileName})">Xem file</a></td></tr>}
+</tbody></table></div>
+<div class="card"><div class="section-heading"><h2>Danh sách ảnh</h2><span class="muted">Trang @Model.Page / @Model.TotalPages · 10 ảnh/trang</span></div>
+@if(Model.Images.Count==0){<div class="empty-state">Chưa có ảnh phù hợp.</div>}else{<div class="image-gallery">@foreach(var image in Model.Images){<a class="image-card" href="@Url.Action("ViewFile",new{claimId=Model.ClaimId,type=image.CategoryCode,fileName=image.FileName})"><img src="@Url.Action("Content",new{claimId=Model.ClaimId,type=image.CategoryCode,fileName=image.FileName})" alt="@image.FileName"/><span>@image.FileName</span><small>@image.CategoryName</small></a>}</div>}
+<div class="pagination">@for(var p=1;p<=Model.TotalPages && p<=10;p++){<a class="page-link @(p==Model.Page?"active":"")" href="@Url.Action("Index",new{claimId=Model.ClaimId,type=Model.Type,sort=Model.Sort,page=p})">@p</a>}</div>
+</div>

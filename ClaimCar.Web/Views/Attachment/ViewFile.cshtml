@@ -1,0 +1,8 @@
+@model ClaimCar.Web.Models.AttachmentPreviewViewModel
+@{ ViewBag.Title="Xem file"; var contentUrl=Url.Action("Content",new{claimId=Model.ClaimId,type=Model.File.CategoryCode,fileName=Model.File.FileName}); }
+<div class="toolbar"><div><h1>Xem file</h1><div class="muted">Số hồ sơ: <strong>@Model.ClaimNumber</strong> · @Model.File.CategoryName</div></div><a class="btn btn-secondary" href="@Url.Action("Index",new{claimId=Model.ClaimId,type=Model.File.CategoryCode})">Quay lại</a></div>
+<div class="card preview-card"><h2>@Model.File.FileName</h2>
+@if(Model.File.IsImage){<img class="file-preview-image" src="@contentUrl" alt="@Model.File.FileName"/>}
+else if(Model.File.ContentType=="application/pdf"){<iframe class="file-preview-frame" src="@contentUrl"></iframe>}
+else{<div class="empty-state">Trình duyệt không hỗ trợ xem trước định dạng này.<br/><a class="btn" href="@contentUrl" target="_blank">Mở file</a></div>}
+</div>

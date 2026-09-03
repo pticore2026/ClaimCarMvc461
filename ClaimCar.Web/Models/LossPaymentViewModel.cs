@@ -8,6 +8,7 @@ namespace ClaimCar.Web.Models
         public string CoverageCode { get; set; }
         public string Currency { get; set; }
         public decimal InsuranceAmount { get; set; }
+        public decimal LossPercent { get; set; }
         public decimal LossAmount { get; set; }
         public decimal Deductible { get; set; }
         public decimal CompensationAmount { get; set; }

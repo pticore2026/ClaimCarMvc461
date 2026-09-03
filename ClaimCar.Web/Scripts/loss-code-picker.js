@@ -19,6 +19,113 @@
     var activePicker = '';
     var activeTrigger = null;
     var garages = [['001079023298', 'Gara ô tô 123'], ['0100108913', 'Công ty cổ phần dịch vụ vận tải ô tô Số 8']];
+    var coverages = [
+        ['XO.1.1.1', 'Bảo hiểm bắt buộc TNDS của chủ xe đối với NT3 về người'],
+        ['XO.1.1.2', 'Bảo hiểm bắt buộc TNDS của chủ xe với NT3 về tài sản'],
+        ['XO.1.1.3', 'Bảo hiểm bắt buộc TNDS của chủ xe đối với hành khách trên xe'],
+        ['XO.3.1', 'Bảo hiểm tai nạn lái xe'],
+        ['XO.3.2', 'Bảo hiểm tai nạn phụ xe'],
+        ['XO.3.4', 'Bảo hiểm người ngồi trên xe'],
+        ['XO.4.1.1', 'Bảo hiểm vật chất toàn bộ xe ô tô - phí cơ bản']
+    ];
+    var activeCoverageTable = null;
+
+    function ensureCoverageModal() {
+        var modal = document.getElementById('CoveragePickerModal');
+        if (modal) return modal;
+        modal = document.createElement('div');
+        modal.id = 'CoveragePickerModal';
+        modal.className = 'code-picker-modal';
+        modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML = '<div class="code-picker-dialog coverage-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="CoveragePickerTitle"><div class="code-picker-header"><h2 id="CoveragePickerTitle">Lựa chọn loại hình</h2><button type="button" class="code-picker-close coverage-picker-close" aria-label="Đóng">×</button></div><div class="coverage-picker-body"><table class="grid-table coverage-picker-table"><thead><tr><th>Mã</th><th>Tên</th></tr></thead><tbody id="CoverageChoices"></tbody></table></div><div class="code-picker-footer"><button type="button" class="btn coverage-picker-close">Đóng</button></div></div>';
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    function closeCoveragePicker() {
+        var modal = document.getElementById('CoveragePickerModal');
+        if (!modal) return;
+        modal.className = 'code-picker-modal';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function addCoverage(code) {
+        if (!activeCoverageTable) return;
+        var body = activeCoverageTable.querySelector('.coverage-rows');
+        var existing = body.querySelectorAll('input[name$=".CoverageCode"]');
+        for (var i = 0; i < existing.length; i++) {
+            if (existing[i].value === code) {
+                if (window.ClaimCarNotification) ClaimCarNotification.warning('Mã loại hình ' + code + ' đã được chọn.');
+                return;
+            }
+        }
+        var index = body.querySelectorAll('tr').length;
+        var prefix = 'Coverages[' + index + ']';
+        var row = document.createElement('tr');
+        row.innerHTML = '<td><input type="hidden" name="' + prefix + '.Id" value="0"><span class="coverage-code"></span><input type="hidden" name="' + prefix + '.CoverageCode"></td>' +
+            '<td><input class="form-control coverage-line-input" name="' + prefix + '.Currency" value="VND" readonly></td>' +
+            '<td><input class="form-control right coverage-line-input" type="number" name="' + prefix + '.InsuranceAmount" value="0" readonly></td>' +
+            '<td><input class="form-control right coverage-line-input" type="number" step="0.01" min="0" max="100" name="' + prefix + '.LossPercent" value="0" readonly></td>' +
+            '<td><input class="form-control right coverage-line-input" type="number" name="' + prefix + '.LossAmount" value="0" readonly></td>' +
+            '<td><input class="form-control right coverage-line-input" type="number" name="' + prefix + '.Deductible" value="0" readonly></td>' +
+            '<td><input class="form-control right coverage-line-input" type="number" name="' + prefix + '.CompensationAmount" value="0" readonly></td>' +
+            '<td><input class="form-control right coverage-line-input" type="number" name="' + prefix + '.TaxAmount" value="0" readonly></td>' +
+            '<td class="coverage-actions"><button type="button" class="coverage-edit" aria-label="Chỉnh sửa" title="Chỉnh sửa">✎</button><button type="button" class="coverage-delete" aria-label="Xóa" title="Xóa">🗑</button></td>';
+        row.querySelector('.coverage-code').textContent = code;
+        row.querySelector('input[name$=".CoverageCode"]').value = code;
+        body.appendChild(row);
+        closeCoveragePicker();
+    }
+
+    function reindexCoverages(body) {
+        var rows = body.querySelectorAll('tr');
+        for (var i = 0; i < rows.length; i++) {
+            var fields = rows[i].querySelectorAll('[name]');
+            for (var j = 0; j < fields.length; j++) fields[j].name = fields[j].name.replace(/^Coverages\[\d+\]/, 'Coverages[' + i + ']');
+        }
+    }
+
+    function toggleCoverageEdit(button) {
+        var row = button.closest('tr');
+        var fields = row.querySelectorAll('.coverage-line-input');
+        var editing = row.className.indexOf('coverage-editing') !== -1;
+        for (var i = 0; i < fields.length; i++) fields[i].readOnly = editing;
+        row.classList.toggle('coverage-editing', !editing);
+        button.textContent = editing ? '✎' : '✓';
+        button.title = editing ? 'Chỉnh sửa' : 'Hoàn tất chỉnh sửa';
+        button.setAttribute('aria-label', button.title);
+        if (!editing && fields.length) fields[0].focus();
+    }
+
+    function deleteCoverage(button) {
+        var row = button.closest('tr');
+        var code = row.querySelector('.coverage-code').textContent;
+        if (!window.confirm('Bạn có chắc muốn xóa mã loại hình ' + code + '?')) return;
+        var body = row.parentNode;
+        body.removeChild(row);
+        reindexCoverages(body);
+    }
+
+    function openCoveragePicker(trigger) {
+        activeCoverageTable = trigger.closest('table');
+        var modal = ensureCoverageModal();
+        var body = document.getElementById('CoverageChoices');
+        body.innerHTML = '';
+        for (var i = 0; i < coverages.length; i++) {
+            (function (coverage) {
+                var row = document.createElement('tr');
+                row.tabIndex = 0;
+                row.innerHTML = '<td></td><td></td>';
+                row.cells[0].textContent = coverage[0];
+                row.cells[1].textContent = coverage[1];
+                row.onclick = function () { addCoverage(coverage[0]); };
+                row.onkeydown = function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); addCoverage(coverage[0]); } };
+                body.appendChild(row);
+            }(coverages[i]));
+        }
+        modal.className = 'code-picker-modal open';
+        modal.setAttribute('aria-hidden', 'false');
+    }
 
     function ensureGarageModal() {
         var modal = document.getElementById('GaragePickerModal');
@@ -139,6 +246,14 @@
     }
 
     document.addEventListener('click', function (event) {
+        var editCoverage = event.target.closest ? event.target.closest('.coverage-edit') : null;
+        if (editCoverage) { event.preventDefault(); toggleCoverageEdit(editCoverage); return; }
+        var deleteCoverageButton = event.target.closest ? event.target.closest('.coverage-delete') : null;
+        if (deleteCoverageButton) { event.preventDefault(); deleteCoverage(deleteCoverageButton); return; }
+        var coverageTrigger = event.target.closest ? event.target.closest('.coverage-add-trigger') : null;
+        if (coverageTrigger) { event.preventDefault(); openCoveragePicker(coverageTrigger); return; }
+        if (event.target.className.indexOf('coverage-picker-close') !== -1) { closeCoveragePicker(); return; }
+        if (event.target.id === 'CoveragePickerModal') { closeCoveragePicker(); return; }
         var garageTrigger = event.target.closest ? event.target.closest('.garage-picker-trigger') : null;
         if (garageTrigger) { event.preventDefault(); openGaragePicker(garageTrigger); return; }
         if (event.target.className.indexOf('garage-picker-close') !== -1) { closeGaragePicker(); return; }
@@ -158,5 +273,5 @@
         }
         if (event.target.id === 'CodePickerModal') closePicker();
     });
-    document.addEventListener('keydown', function (event) { if (event.key === 'Escape' || event.keyCode === 27) { closePicker(); closeGaragePicker(); } });
+    document.addEventListener('keydown', function (event) { if (event.key === 'Escape' || event.keyCode === 27) { closePicker(); closeGaragePicker(); closeCoveragePicker(); } });
 }());

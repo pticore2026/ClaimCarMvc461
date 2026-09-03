@@ -81,7 +81,7 @@ namespace ClaimCar.Web.Repositories
                 THANH_TOAN_QUA_GARA INTEGER NOT NULL DEFAULT 0, DOI_QUY_HIEP_HOI INTEGER NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS CLAIM_COVERAGE (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT, CLAIM_ID INTEGER NOT NULL REFERENCES CLAIM_GENERAL(ID) ON DELETE CASCADE,
-                LOAI_HINH TEXT, NGOAI_TE TEXT, TIEN_BAO_HIEM NUMERIC, TIEN_TT NUMERIC, KHAU_TRU NUMERIC, TIEN_BOI_THUONG NUMERIC, THUE NUMERIC);
+                LOAI_HINH TEXT, NGOAI_TE TEXT, TIEN_BAO_HIEM NUMERIC, TY_LE_TT NUMERIC NOT NULL DEFAULT 0, TIEN_TT NUMERIC, KHAU_TRU NUMERIC, TIEN_BOI_THUONG NUMERIC, THUE NUMERIC);
             CREATE TABLE IF NOT EXISTS CLAIM_BENEFICIARY (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT, CLAIM_ID INTEGER NOT NULL REFERENCES CLAIM_GENERAL(ID) ON DELETE CASCADE, MA TEXT, TEN TEXT);
             CREATE TABLE IF NOT EXISTS CLAIM_THIRD_PARTY (
@@ -112,6 +112,7 @@ namespace ClaimCar.Web.Repositories
             _connectionString = setting.ConnectionString;
             InitializeSchema();
             EnsureClaimCreatorColumn();
+            EnsureCoverageLossPercentColumn();
         }
 
         public IList<Claim> Search(string keyword, string status)
@@ -203,7 +204,7 @@ namespace ClaimCar.Web.Repositories
                     command.CommandText = "SELECT * FROM CLAIM_LOSS_PAYMENT WHERE CLAIM_ID=@id"; Add(command, "@id", claimId);
                     using (var r=command.ExecuteReader()) if (r.Read()) { model.CauseCode=Text(r,"MA_NGUYEN_NHAN"); model.BehaviorCode=Text(r,"MA_HANH_VI"); model.AreaCode=Text(r,"MA_KHU_VUC"); model.EventCode=Text(r,"MA_SU_KIEN"); model.TbtnYcbReference=Text(r,"CV_TBTN_YCB"); model.VehicleCertificateValue=Decimal(r,"GIA_TRI_XE_GCN"); model.AccidentDescription=Text(r,"DIEN_BIEN"); model.CauseDescription=Text(r,"MO_TA_NGUYEN_NHAN"); model.ConsequenceDescription=Text(r,"MO_TA_HAU_QUA"); model.GarageCode=Text(r,"MA_GARA"); model.GarageName=Text(r,"TEN_GARA"); model.GaragePhone=Text(r,"PHONE_GARA"); model.GarageEmail=Text(r,"EMAIL_GARA"); model.PayThroughGarage=Bool(r,"THANH_TOAN_QUA_GARA"); model.AssociationFund=Bool(r,"DOI_QUY_HIEP_HOI"); }
                 }
-                ReadRows(connection,"SELECT * FROM CLAIM_COVERAGE WHERE CLAIM_ID=@id ORDER BY ID",claimId,r=>model.Coverages.Add(new CoverageLine{Id=Int(r,"ID"),CoverageCode=Text(r,"LOAI_HINH"),Currency=Text(r,"NGOAI_TE"),InsuranceAmount=Decimal(r,"TIEN_BAO_HIEM"),LossAmount=Decimal(r,"TIEN_TT"),Deductible=Decimal(r,"KHAU_TRU"),CompensationAmount=Decimal(r,"TIEN_BOI_THUONG"),TaxAmount=Decimal(r,"THUE")}));
+                ReadRows(connection,"SELECT * FROM CLAIM_COVERAGE WHERE CLAIM_ID=@id ORDER BY ID",claimId,r=>model.Coverages.Add(new CoverageLine{Id=Int(r,"ID"),CoverageCode=Text(r,"LOAI_HINH"),Currency=Text(r,"NGOAI_TE"),InsuranceAmount=Decimal(r,"TIEN_BAO_HIEM"),LossPercent=Decimal(r,"TY_LE_TT"),LossAmount=Decimal(r,"TIEN_TT"),Deductible=Decimal(r,"KHAU_TRU"),CompensationAmount=Decimal(r,"TIEN_BOI_THUONG"),TaxAmount=Decimal(r,"THUE")}));
                 ReadRows(connection,"SELECT * FROM CLAIM_BENEFICIARY WHERE CLAIM_ID=@id ORDER BY ID",claimId,r=>model.OtherBeneficiaries.Add(new BeneficiaryLine{Id=Int(r,"ID"),Code=Text(r,"MA"),Name=Text(r,"TEN")}));
                 ReadRows(connection,"SELECT * FROM CLAIM_THIRD_PARTY WHERE CLAIM_ID=@id ORDER BY ID",claimId,r=>model.ThirdParties.Add(new ThirdPartyLine{Id=Int(r,"ID"),Name=Text(r,"TEN"),Currency=Text(r,"NGOAI_TE"),Amount=Decimal(r,"SO_TIEN")}));
             }
@@ -215,7 +216,7 @@ namespace ClaimCar.Web.Repositories
             using(var connection=OpenConnection()) using(var transaction=connection.BeginTransaction())
             {
                 Execute(connection,transaction,"INSERT OR REPLACE INTO CLAIM_LOSS_PAYMENT VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o)",c=>{Add(c,"@id",model.ClaimId);Add(c,"@a",model.CauseCode);Add(c,"@b",model.BehaviorCode);Add(c,"@c",model.AreaCode);Add(c,"@d",model.EventCode);Add(c,"@e",model.TbtnYcbReference);Add(c,"@f",model.VehicleCertificateValue);Add(c,"@g",model.AccidentDescription);Add(c,"@h",model.CauseDescription);Add(c,"@i",model.ConsequenceDescription);Add(c,"@j",model.GarageCode);Add(c,"@k",model.GarageName);Add(c,"@l",model.GaragePhone);Add(c,"@m",model.GarageEmail);Add(c,"@n",model.PayThroughGarage?1:0);Add(c,"@o",model.AssociationFund?1:0);});
-                ReplaceChildren(connection,transaction,"CLAIM_COVERAGE",model.ClaimId,model.Coverages,(c,x)=>{c.CommandText="INSERT INTO CLAIM_COVERAGE(CLAIM_ID,LOAI_HINH,NGOAI_TE,TIEN_BAO_HIEM,TIEN_TT,KHAU_TRU,TIEN_BOI_THUONG,THUE) VALUES(@id,@a,@b,@c,@d,@e,@f,@g)";Add(c,"@a",x.CoverageCode);Add(c,"@b",x.Currency);Add(c,"@c",x.InsuranceAmount);Add(c,"@d",x.LossAmount);Add(c,"@e",x.Deductible);Add(c,"@f",x.CompensationAmount);Add(c,"@g",x.TaxAmount);});
+                ReplaceChildren(connection,transaction,"CLAIM_COVERAGE",model.ClaimId,model.Coverages,(c,x)=>{c.CommandText="INSERT INTO CLAIM_COVERAGE(CLAIM_ID,LOAI_HINH,NGOAI_TE,TIEN_BAO_HIEM,TY_LE_TT,TIEN_TT,KHAU_TRU,TIEN_BOI_THUONG,THUE) VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h)";Add(c,"@a",x.CoverageCode);Add(c,"@b",x.Currency);Add(c,"@c",x.InsuranceAmount);Add(c,"@d",x.LossPercent);Add(c,"@e",x.LossAmount);Add(c,"@f",x.Deductible);Add(c,"@g",x.CompensationAmount);Add(c,"@h",x.TaxAmount);});
                 ReplaceChildren(connection,transaction,"CLAIM_BENEFICIARY",model.ClaimId,model.OtherBeneficiaries,(c,x)=>{c.CommandText="INSERT INTO CLAIM_BENEFICIARY(CLAIM_ID,MA,TEN) VALUES(@id,@a,@b)";Add(c,"@a",x.Code);Add(c,"@b",x.Name);});
                 ReplaceChildren(connection,transaction,"CLAIM_THIRD_PARTY",model.ClaimId,model.ThirdParties,(c,x)=>{c.CommandText="INSERT INTO CLAIM_THIRD_PARTY(CLAIM_ID,TEN,NGOAI_TE,SO_TIEN) VALUES(@id,@a,@b,@c)";Add(c,"@a",x.Name);Add(c,"@b",x.Currency);Add(c,"@c",x.Amount);});
                 transaction.Commit();
@@ -286,6 +287,17 @@ namespace ClaimCar.Web.Repositories
                 using(var reader=command.ExecuteReader()) while(reader.Read()) if(string.Equals(reader["name"].ToString(),"NGUOI_TAO",StringComparison.OrdinalIgnoreCase)){exists=true;break;}
             }
             if(!exists)Execute("ALTER TABLE CLAIM_GENERAL ADD COLUMN NGUOI_TAO TEXT NOT NULL DEFAULT 'admin'",command=>{});
+        }
+
+        private void EnsureCoverageLossPercentColumn()
+        {
+            var exists=false;
+            using(var connection=OpenConnection()) using(var command=connection.CreateCommand())
+            {
+                command.CommandText="PRAGMA table_info(CLAIM_COVERAGE)";
+                using(var reader=command.ExecuteReader()) while(reader.Read()) if(string.Equals(reader["name"].ToString(),"TY_LE_TT",StringComparison.OrdinalIgnoreCase)){exists=true;break;}
+            }
+            if(!exists)Execute("ALTER TABLE CLAIM_COVERAGE ADD COLUMN TY_LE_TT NUMERIC NOT NULL DEFAULT 0",command=>{});
         }
 
         private SQLiteConnection OpenConnection()

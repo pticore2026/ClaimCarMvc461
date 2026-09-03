@@ -84,6 +84,7 @@ namespace ClaimCar.Web.Services
         private string ValidateLossAmounts(LossPaymentViewModel model,Claim claim)
         {
             var rows=model.Coverages??new System.Collections.Generic.List<CoverageLine>();
+            if(rows.Any(x=>x.LossPercent<0||x.LossPercent>100))return "%TT phải nằm trong khoảng từ 0 đến 100.";
             if(rows.Any(x=>x.LossAmount<0||x.Deductible<0||x.CompensationAmount<0||x.TaxAmount<0))return "Giá trị tổn thất, khấu trừ, bồi thường và thuế không được âm.";
             if(rows.Any(x=>x.CompensationAmount>x.LossAmount))return "Tiền bồi thường không được vượt tiền tổn thất trên cùng phạm vi bảo hiểm.";
             var totalLoss=rows.Sum(x=>x.LossAmount);

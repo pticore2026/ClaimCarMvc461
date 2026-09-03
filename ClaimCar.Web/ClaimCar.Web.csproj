@@ -127,6 +127,7 @@
     <Content Include="Content\site.css" />
     <Content Include="Scripts\loss-code-picker.js" />
     <Content Include="Scripts\supporting-documents.js" />
+    <Content Include="Scripts\quote-part-picker.js" />
     <Content Include="Content\policy-popup.css" />
     <Content Include="Content\claimcar-notification.css" />
     <Content Include="Scripts\claimcar-notification.js" />

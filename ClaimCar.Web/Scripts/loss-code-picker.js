@@ -19,6 +19,7 @@
     var activePicker = '';
     var activeTrigger = null;
     var garages = [['001079023298', 'Gara ô tô 123'], ['0100108913', 'Công ty cổ phần dịch vụ vận tải ô tô Số 8']];
+    var activeBeneficiaryTable = null;
     var coverages = [
         ['XO.1.1.1', 'Bảo hiểm bắt buộc TNDS của chủ xe đối với NT3 về người'],
         ['XO.1.1.2', 'Bảo hiểm bắt buộc TNDS của chủ xe với NT3 về tài sản'],
@@ -29,6 +30,66 @@
         ['XO.4.1.1', 'Bảo hiểm vật chất toàn bộ xe ô tô - phí cơ bản']
     ];
     var activeCoverageTable = null;
+
+    function ensureBeneficiaryModal() {
+        var modal = document.getElementById('BeneficiaryPickerModal');
+        if (modal) return modal;
+        modal = document.createElement('div');
+        modal.id = 'BeneficiaryPickerModal';
+        modal.className = 'code-picker-modal';
+        modal.setAttribute('aria-hidden', 'true');
+        modal.innerHTML = '<div class="code-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="BeneficiaryPickerTitle"><div class="code-picker-header"><h2 id="BeneficiaryPickerTitle">Lựa chọn đối tượng hưởng khác</h2><button type="button" class="code-picker-close beneficiary-picker-close" aria-label="Đóng">×</button></div><div class="coverage-picker-body"><table class="grid-table beneficiary-picker-table"><thead><tr><th>Mã</th><th>Tên</th></tr></thead><tbody id="BeneficiaryChoices"></tbody></table></div><div class="code-picker-footer"><button type="button" class="btn beneficiary-picker-close">Đóng</button></div></div>';
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    function closeBeneficiaryPicker() {
+        var modal = document.getElementById('BeneficiaryPickerModal');
+        if (!modal) return;
+        modal.className = 'code-picker-modal';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function addBeneficiary(garage) {
+        if (!activeBeneficiaryTable) return;
+        var body = activeBeneficiaryTable.querySelector('.beneficiary-rows');
+        var codes = body.querySelectorAll('input[name$=".Code"]');
+        for (var i = 0; i < codes.length; i++) {
+            if (codes[i].value === garage[0]) {
+                if (window.ClaimCarNotification) ClaimCarNotification.warning('Mã Gara ' + garage[0] + ' đã được chọn.');
+                return;
+            }
+        }
+        var index = body.querySelectorAll('tr').length;
+        var prefix = 'OtherBeneficiaries[' + index + ']';
+        var row = document.createElement('tr');
+        row.innerHTML = '<td><input type="hidden" name="' + prefix + '.Id" value="0"><input class="form-control" name="' + prefix + '.Code" readonly></td><td><input class="form-control" name="' + prefix + '.Name" readonly></td><td><input class="form-control" name="' + prefix + '.Currency" value="VND"></td><td><input class="form-control right" type="number" min="0" name="' + prefix + '.Amount" value="0"></td>';
+        row.querySelector('input[name$=".Code"]').value = garage[0];
+        row.querySelector('input[name$=".Name"]').value = garage[1];
+        body.appendChild(row);
+        closeBeneficiaryPicker();
+    }
+
+    function openBeneficiaryPicker(trigger) {
+        activeBeneficiaryTable = trigger.closest('table');
+        var modal = ensureBeneficiaryModal();
+        var body = document.getElementById('BeneficiaryChoices');
+        body.innerHTML = '';
+        for (var i = 0; i < garages.length; i++) {
+            (function (garage) {
+                var row = document.createElement('tr');
+                row.tabIndex = 0;
+                row.innerHTML = '<td></td><td></td>';
+                row.cells[0].textContent = garage[0];
+                row.cells[1].textContent = garage[1];
+                row.onclick = function () { addBeneficiary(garage); };
+                row.onkeydown = function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); addBeneficiary(garage); } };
+                body.appendChild(row);
+            }(garages[i]));
+        }
+        modal.className = 'code-picker-modal open';
+        modal.setAttribute('aria-hidden', 'false');
+    }
 
     function ensureCoverageModal() {
         var modal = document.getElementById('CoveragePickerModal');
@@ -246,6 +307,10 @@
     }
 
     document.addEventListener('click', function (event) {
+        var beneficiaryTrigger = event.target.closest ? event.target.closest('.beneficiary-add-trigger') : null;
+        if (beneficiaryTrigger) { event.preventDefault(); openBeneficiaryPicker(beneficiaryTrigger); return; }
+        if (event.target.className.indexOf('beneficiary-picker-close') !== -1) { closeBeneficiaryPicker(); return; }
+        if (event.target.id === 'BeneficiaryPickerModal') { closeBeneficiaryPicker(); return; }
         var editCoverage = event.target.closest ? event.target.closest('.coverage-edit') : null;
         if (editCoverage) { event.preventDefault(); toggleCoverageEdit(editCoverage); return; }
         var deleteCoverageButton = event.target.closest ? event.target.closest('.coverage-delete') : null;
@@ -273,5 +338,5 @@
         }
         if (event.target.id === 'CodePickerModal') closePicker();
     });
-    document.addEventListener('keydown', function (event) { if (event.key === 'Escape' || event.keyCode === 27) { closePicker(); closeGaragePicker(); closeCoveragePicker(); } });
+    document.addEventListener('keydown', function (event) { if (event.key === 'Escape' || event.keyCode === 27) { closePicker(); closeGaragePicker(); closeCoveragePicker(); closeBeneficiaryPicker(); } });
 }());

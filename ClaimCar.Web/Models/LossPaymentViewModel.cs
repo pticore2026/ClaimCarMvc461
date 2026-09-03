@@ -14,7 +14,7 @@ namespace ClaimCar.Web.Models
         public decimal CompensationAmount { get; set; }
         public decimal TaxAmount { get; set; }
     }
-    public class BeneficiaryLine { public int Id { get; set; } public string Code { get; set; } public string Name { get; set; } }
+    public class BeneficiaryLine { public int Id { get; set; } public string Code { get; set; } public string Name { get; set; } public string Currency { get; set; } public decimal Amount { get; set; } }
     public class ThirdPartyLine { public int Id { get; set; } public string Name { get; set; } public string Currency { get; set; } public decimal Amount { get; set; } }
     public class LossPaymentViewModel
     {

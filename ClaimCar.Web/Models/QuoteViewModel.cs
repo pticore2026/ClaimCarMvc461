@@ -6,6 +6,7 @@ namespace ClaimCar.Web.Models
     public class QuoteItem
     {
         public int Id { get; set; }
+        public string PartCode { get; set; }
         public string PartName { get; set; }
         public int Quantity { get; set; }
         public string Proposal { get; set; }

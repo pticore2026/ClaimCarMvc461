@@ -60,6 +60,20 @@ namespace ClaimCar.Web.Controllers
         {
             var item=FindFile(claimId,type,fileName);if(item==null)return HttpNotFound();return File(Path.Combine(CategoryDirectory(claimId,type),item.FileName),item.ContentType);
         }
+        [HttpPost,ValidateAntiForgeryToken]
+        public ActionResult Delete(int claimId,string type,string fileName,string returnType,string sort,int page=1)
+        {
+            if(_service.Repository.Get(claimId)==null)return HttpNotFound();
+            var item=FindFile(claimId,type,fileName);if(item==null)return HttpNotFound();
+            try
+            {
+                System.IO.File.Delete(Path.Combine(CategoryDirectory(claimId,type),item.FileName));
+                TempData["Success"]="Đã xóa file \""+item.FileName+"\".";
+            }
+            catch(IOException){TempData["AttachmentError"]="Không thể xóa file. Vui lòng thử lại.";}
+            catch(UnauthorizedAccessException){TempData["AttachmentError"]="Không có quyền xóa file.";}
+            return RedirectToAction("Index",new{claimId=claimId,type=IsCategory(returnType)?returnType:"all",sort=sort,page=page});
+        }
         private List<AttachmentItem> ReadFiles(int claimId,string type,string sort)
         {
             var selected=type=="all"?Categories:Categories.Where(x=>x.Code==type).ToList();var files=new List<AttachmentItem>();

@@ -1,0 +1,10 @@
+@{ ViewBag.Title = "Giấy tờ kèm hồ sơ"; }
+<div class="toolbar"><div><h1>Giấy tờ kèm hồ sơ</h1></div><a class="btn btn-secondary" href="@Url.Action("Index","Claim")">Danh sách hồ sơ</a></div>
+<div class="supporting-document-layout">
+<div class="card"><div class="section-heading"><h2>Nghiệp vụ phát sinh</h2></div><div id="supporting-business-list" class="supporting-business-list"></div></div>
+<div>
+<div class="card"><div class="section-heading"><h2>Danh mục chi tiết giấy tờ theo nghiệp vụ</h2><span id="supporting-document-total" class="muted"></span></div><div class="supporting-selected-business">Nghiệp vụ: <strong id="supporting-selected-business">ALL</strong></div><table class="grid-table supporting-detail-table"><thead><tr><th class="supporting-check-column"><input id="supporting-check-all" type="checkbox" aria-label="Chọn tất cả trên trang"/></th><th>Mã</th><th>Tên</th></tr></thead><tbody id="supporting-document-catalog"></tbody></table><div id="supporting-document-pagination" class="pagination"></div><div class="supporting-transfer-actions"><button id="supporting-transfer-existing" class="btn" type="button">Chuyển giấy tờ đã có</button><button id="supporting-transfer-missing" class="btn btn-secondary" type="button">Chuyển giấy tờ còn thiếu</button></div></div>
+<div class="card"><div class="section-heading"><h2>Giấy tờ đã có</h2><span id="supporting-existing-count" class="muted">0 giấy tờ</span></div><table class="grid-table supporting-result-table"><thead><tr><th class="supporting-delete-column"></th><th>Mã</th><th>Tên</th></tr></thead><tbody id="supporting-existing-list"></tbody></table></div>
+<div class="card"><div class="section-heading"><h2>Giấy tờ bắt buộc chưa có</h2><span id="supporting-missing-count" class="muted">0 giấy tờ</span></div><table class="grid-table supporting-result-table"><thead><tr><th class="supporting-delete-column"></th><th>Mã</th><th>Tên</th></tr></thead><tbody id="supporting-missing-list"></tbody></table></div>
+</div></div>
+<script src="@Url.Content("~/Scripts/supporting-documents.js?v=20260903-1")"></script>

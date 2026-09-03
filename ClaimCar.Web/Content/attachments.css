@@ -1,6 +1,13 @@
 .attachment-filter{display:grid;grid-template-columns:2fr 2fr 1fr;gap:18px;align-items:end}
 .attachment-upload{display:grid;grid-template-columns:2fr 3fr auto;gap:18px;align-items:end;margin-top:18px;padding-top:18px;border-top:1px solid #dbe5ed}
 .file-input{padding:5px}
+.grid-table td.actions .attachment-actions{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.grid-table td.actions .attachment-delete-form{display:inline-flex;margin:0;padding:0}
+.grid-table td.actions .attachment-icon-button{display:inline-flex;flex:0 0 32px;align-items:center;justify-content:center;width:32px;height:30px;margin:0;padding:5px;vertical-align:middle;background:#fff;border:1px solid #b9cbd9;color:#0b88ca}
+.grid-table td.actions .attachment-icon-button.btn-danger{background:#fff;border-color:#e1b4b1;color:#d94d46}
+.attachment-icon-button svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.supporting-document-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:14px;align-items:start}.supporting-business-list{border:1px solid #d8e2eb;border-radius:4px;overflow:hidden}.supporting-business-row{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-bottom:1px solid #e1e8ef;font-weight:600}.supporting-business-row:last-child{border-bottom:0}.supporting-business-row.active{background:#e5f1fb;color:#087abf}.supporting-eye-button,.supporting-remove-button{display:inline-flex;align-items:center;justify-content:center;width:30px;height:28px;padding:4px;border:1px solid #b9cbd9;border-radius:4px;background:#fff;color:#0b88ca;cursor:pointer}.supporting-eye-button svg,.supporting-remove-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.supporting-remove-button{color:#d94d46;border-color:#e1b4b1}.supporting-selected-business{margin-bottom:10px}.supporting-check-column,.supporting-delete-column{width:46px}.supporting-detail-table th:nth-child(2),.supporting-result-table th:nth-child(2){width:190px}.supporting-transfer-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}.supporting-document-layout .pagination .page-link{cursor:pointer}.supporting-document-layout .pagination button{font-family:inherit}
+@media(max-width:900px){.supporting-document-layout{grid-template-columns:1fr}.supporting-transfer-actions{flex-wrap:wrap}}
 .section-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .section-heading h2,.preview-card h2{margin:0;font-size:19px}
 .empty-state{text-align:center;color:#73879c;padding:28px}

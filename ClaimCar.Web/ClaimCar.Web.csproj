@@ -100,6 +100,7 @@
     <Compile Include="Controllers\LossPaymentController.cs" />
     <Compile Include="Controllers\PolicyController.cs" />
     <Compile Include="Controllers\QuoteController.cs" />
+    <Compile Include="Controllers\SupportingDocumentController.cs" />
     <Compile Include="Infrastructure\ClaimExtensionHost.cs" />
     <Compile Include="Infrastructure\ConfigLoginService.cs" />
     <Compile Include="Models\Claim.cs" />
@@ -125,6 +126,7 @@
   <ItemGroup>
     <Content Include="Content\site.css" />
     <Content Include="Scripts\loss-code-picker.js" />
+    <Content Include="Scripts\supporting-documents.js" />
     <Content Include="Content\policy-popup.css" />
     <Content Include="Content\claimcar-notification.css" />
     <Content Include="Scripts\claimcar-notification.js" />
@@ -147,6 +149,7 @@
     <Content Include="Views\Quote\_MoneyBlock.cshtml" />
     <Content Include="Views\Policy\Details.cshtml" />
     <Content Include="Views\Policy\Popup.cshtml" />
+    <Content Include="Views\SupportingDocument\Index.cshtml" />
     <Content Include="packages.config" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <Content Include="App_Data\ClaimExtensions\.gitkeep" />

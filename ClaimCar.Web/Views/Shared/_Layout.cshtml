@@ -16,7 +16,7 @@
 <header class="topbar">
     <div class="brand">Bồi thường Xe / Tiếp nhận hồ sơ và báo giá</div>
     <nav class="top-actions">
-        <a href="@Url.Action("Index","Attachment")">📎 Đính kèm chứng từ</a><a href="@Url.Action("Index","SupportingDocument")">📄 Giấy tờ kèm hồ sơ</a><a href="#" data-popup-url="@Url.Action("Popup","Policy")" data-current-claim-id="@currentClaimId" onclick="return openPolicyPopup(this)">◉ TTin HĐ</a><a href="#">◉ Phí, BT</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>
+        <a href="@Url.Action("Index","Attachment")">📎 Đính kèm chứng từ</a><a href="@Url.Action("Index","SupportingDocument")">📄 Giấy tờ kèm hồ sơ</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>
         <a href="@Url.Action("Logout","Account")">Đăng xuất</a>
     </nav>
 </header>

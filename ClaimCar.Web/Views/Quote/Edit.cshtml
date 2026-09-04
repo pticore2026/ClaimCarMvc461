@@ -16,15 +16,6 @@
         "Loại 1(Xịn,OEM)",
         "Loại 2(Liên doanh)"
     };
-    var repairCost=(Model.RepairTotal*(100m-Model.RepairDiscountPercent)/100m)
-        +(Model.PaintTotal*(100m-Model.PaintDiscountPercent)/100m)
-        +(Model.LaborTotal*(100m-Model.LaborDiscountPercent)/100m);
-    var replacementAmount=Model.ReplacementTotal*(100m-Model.ReplacementDiscountPercent)/100m;
-    var specialReplacementAmount=Model.SpecialReplacementTotal*(100m-Model.SpecialReplacementDiscountPercent)/100m;
-    var replacementCost=replacementAmount+specialReplacementAmount;
-    var depreciationCost=(replacementAmount*Model.ReplacementDepreciationPercent/100m)
-        +(specialReplacementAmount*Model.SpecialDepreciationPercent/100m);
-    var towingCost=Model.TowingTotal*(100m-Model.TowingDiscountPercent)/100m;
     var reductionReasons=new[]{
         "KHÔNG THÔNG BÁO NGAY CHO PTI",
         "KHÔNG GỬI THÔNG BÁO TỔN THẤT BẰNG VĂN BẢN CHO PTI TRONG 5 NGÀY",
@@ -56,10 +47,6 @@ if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.Validati
 @Html.Partial("_MoneyBlock",new ViewDataDictionary{{"Label","Tổng tiền công"},{"Name","LaborTotal"},{"Value",Model.LaborTotal},{"PercentName","LaborDiscountPercent"},{"Percent",Model.LaborDiscountPercent},{"Auto",true}})
 @Html.Partial("_MoneyBlock",new ViewDataDictionary{{"Label","Tổng tiền cẩu kéo"},{"Name","TowingTotal"},{"Value",Model.TowingTotal},{"PercentName","TowingDiscountPercent"},{"Percent",Model.TowingDiscountPercent}})
 </div>
-<div class="form-group" style="max-width:360px;margin-top:14px"><label>Chi phí sửa chữa</label><div class="money-input"><input id="RepairCostTotal" class="form-control readonly right" type="text" readonly value="@repairCost.ToString("N0")"/><span class="money-unit">VNĐ</span></div><div class="hint">Tổng thành tiền sửa chữa + thành tiền sơn + thành tiền công</div></div>
-<div class="form-group" style="max-width:360px;margin-top:14px"><label>Chi phí thay mới phụ tùng</label><div class="money-input"><input id="ReplacementCostTotal" class="form-control readonly right" type="text" readonly value="@replacementCost.ToString("N0")"/><span class="money-unit">VNĐ</span></div><div class="hint">Thành tiền thay thế + thành tiền thay thế đặc biệt</div></div>
-<div class="form-group" style="max-width:360px;margin-top:14px"><label>Chi phí khấu hao</label><div class="money-input"><input id="DepreciationCostTotal" class="form-control readonly right" type="text" readonly value="@depreciationCost.ToString("N0")"/><span class="money-unit">VNĐ</span></div><div class="hint">Khấu hao thay thế + khấu hao thay thế đặc biệt</div></div>
-<div class="form-group" style="max-width:360px;margin-top:14px"><label>Chi phí cứu hộ (cẩu kéo)</label><div class="money-input"><input id="TowingCostTotal" class="form-control readonly right" type="text" readonly value="@towingCost.ToString("N0")"/><span class="money-unit">VNĐ</span></div></div>
 <div class="section-title"><span>Tính toán chi phí giảm trừ</span></div>
 <div class="seven-col"><div class="form-group"><label>Khấu hao thay thế</label>@Html.TextBoxFor(x=>x.ReplacementDepreciationPercent,new{@class="form-control right",type="number",step="0.01"})</div><div class="form-group"><label>Khấu hao đặc biệt</label>@Html.TextBoxFor(x=>x.SpecialDepreciationPercent,new{@class="form-control right",type="number",step="0.01"})</div><div class="form-group"><label>Tỉ lệ g.trị tham gia BH</label>@Html.TextBoxFor(x=>x.ParticipationValuePercent,new{@class="form-control right",type="number",step="0.01"})</div><div class="form-group"><label>Tỉ lệ phí tham gia</label>@Html.TextBoxFor(x=>x.ParticipationFeePercent,new{@class="form-control right",type="number",step="0.01"})</div><div class="form-group"><label>Số vụ / Số tiền khấu trừ chung</label><div style="display:flex;gap:5px">@Html.TextBoxFor(x=>x.DeductibleCases,new{@class="form-control right",type="number",min="0"})@Html.TextBoxFor(x=>x.DeductibleAmount,new{@class="form-control readonly right",type="number",@readonly="readonly"})</div><div class="hint">Mức khấu trừ theo đơn BH × số vụ</div></div><div class="form-group"><label>Tỷ lệ giảm trừ bồi thường</label>@Html.TextBoxFor(x=>x.CompensationReductionPercent,new{@class="form-control right",type="number",step="0.01",min="0",max="100"})</div><div class="form-group"><label>Số tiền giảm trừ bồi thường</label>@Html.TextBoxFor(x=>x.CompensationReductionAmount,new{@class="form-control right",type="number",min="0"})<div class="hint">Nhập số tiền để hệ thống tự quy đổi tỷ lệ</div></div><div class="form-group"><label>Tỷ lệ chia sẻ rủi ro</label>@Html.TextBoxFor(x=>x.RiskSharingPercent,new{@class="form-control right",type="number",step="0.01"})</div></div>
 <div class="section-title"><span>Tính toán tổng chi phí</span></div>

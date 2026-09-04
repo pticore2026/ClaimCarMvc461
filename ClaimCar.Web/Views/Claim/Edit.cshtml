@@ -17,7 +17,7 @@ if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.Validati
 <div class="form-group"><label>Ngày quyết định</label><input class="form-control" type="date" name="DecisionDate" value="@(Model.DecisionDate.HasValue?Model.DecisionDate.Value.ToString("yyyy-MM-dd"):"")"/></div>
 <div class="form-group"><label class="required">Ngày xảy ra</label><input class="form-control" type="date" name="AccidentDate" value="@Model.AccidentDate.ToString("yyyy-MM-dd")"/></div>
 <div class="form-group"><label class="required">Ngày thông báo</label><input class="form-control" type="date" name="NotificationDate" value="@Model.NotificationDate.ToString("yyyy-MM-dd")"/></div>
-<div class="form-group"><label>Số hồ sơ</label>@Html.TextBoxFor(x=>x.ClaimNumber,new{@class="form-control readonly",@readonly="readonly",placeholder="Tự động sinh khi lưu"})</div>
+<div class="form-group"><label>Số hồ sơ</label>@Html.TextBoxFor(x=>x.ClaimNumber,new{@class="form-control readonly",@readonly="readonly"})</div>
 <div class="form-group"><label>Mã giám định viên</label>@Html.TextBoxFor(x=>x.SurveyorCode,new{@class="form-control"})</div>
 <div class="form-group"><label>Giá trị xe / tiền bảo hiểm</label>@Html.TextBoxFor(x=>x.InsuredValue,new{@class="form-control right",type="number",step="1"})</div>
 </div>

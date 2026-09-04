@@ -1,4 +1,10 @@
-@{ var currentClaimId=ViewBag.ClaimId==null?0:Convert.ToInt32(ViewBag.ClaimId); }
+@{
+    var currentClaimId=ViewBag.ClaimId==null?0:Convert.ToInt32(ViewBag.ClaimId);
+    var currentController=(ViewContext.RouteData.Values["controller"]??"").ToString();
+    var currentAction=(ViewContext.RouteData.Values["action"]??"").ToString();
+    var showClaimTools=(currentController=="Claim"&&(currentAction=="Create"||currentAction=="Edit"))
+        || ((currentController=="LossPayment"||currentController=="Quote")&&currentAction=="Edit");
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -6,7 +12,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewBag.Title - Bồi thường Xe</title>
-    <link rel="stylesheet" href="@Url.Content("~/Content/site.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/site.css?v=20260904-6")" />
     <link rel="stylesheet" href="@Url.Content("~/Content/policy-popup.css")" />
     <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-notification.css")" />
     <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-utilities.css")" />
@@ -16,7 +22,7 @@
 <header class="topbar">
     <div class="brand">Bồi thường Xe / Tiếp nhận hồ sơ và báo giá</div>
     <nav class="top-actions">
-        <a href="@Url.Action("Index","Attachment")">📎 Đính kèm chứng từ</a><a href="@Url.Action("Index","SupportingDocument")">📄 Giấy tờ kèm hồ sơ</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>
+        @if(showClaimTools){<a href="@Url.Action("Index","Attachment",new{claimId=currentClaimId>0?(int?)currentClaimId:null})">📎 Đính kèm chứng từ</a><a href="@Url.Action("Index","SupportingDocument")">📄 Giấy tờ kèm hồ sơ</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>}
         <a href="@Url.Action("Logout","Account")">Đăng xuất</a>
     </nav>
 </header>
@@ -27,8 +33,8 @@
 <div id="policy-modal" class="policy-modal" aria-hidden="true"><div class="policy-modal-backdrop" onclick="closePolicyPopup()"></div><div class="policy-modal-dialog" role="dialog" aria-modal="true" aria-label="Thông tin hợp đồng bảo hiểm"><button class="policy-modal-close" type="button" onclick="closePolicyPopup()" aria-label="Đóng">×</button><iframe id="policy-modal-frame" class="policy-modal-frame" title="Thông tin hợp đồng bảo hiểm"></iframe></div></div>
 <script src="@Url.Content("~/Scripts/claimcar-notification.js")"></script>
 <script src="@Url.Content("~/Scripts/claimcar-bulk-delete.js")"></script>
-<script src="@Url.Content("~/Scripts/loss-code-picker.js")"></script>
-<script src="@Url.Content("~/Scripts/quote-part-picker.js")"></script>
+<script src="@Url.Content("~/Scripts/loss-code-picker.js?v=20260904-5")"></script>
+<script src="@Url.Content("~/Scripts/quote-part-picker.js?v=20260904-1")"></script>
 <script>
 function openPolicyPopup(link){
     var choices=document.querySelectorAll('.js-claim-select:checked');

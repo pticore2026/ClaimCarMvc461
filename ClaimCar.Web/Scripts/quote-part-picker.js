@@ -107,7 +107,7 @@
     }
 
     function actionMenuMarkup() {
-        return '<div class="quote-part-actions"><button type="button" class="quote-part-actions-toggle" aria-label="Thao tác phụ tùng" aria-expanded="false">⋮</button><div class="quote-part-actions-menu"><button type="button" class="quote-part-edit"><span aria-hidden="true">✎</span> Sửa</button><button type="button" class="quote-part-delete"><span aria-hidden="true">🗑</span> Xóa</button></div></div>';
+        return '<div class="quote-part-actions"><button type="button" class="quote-part-edit" aria-label="Sửa phụ tùng" title="Sửa">✎</button><button type="button" class="quote-part-delete" aria-label="Xóa phụ tùng" title="Xóa">🗑</button></div>';
     }
 
     function lockRow(row) {
@@ -450,16 +450,6 @@
 
     document.addEventListener('click', function (event) {
         if (event.target.className.indexOf('damage-picker-close') !== -1 || event.target.id === 'DamagePickerModal') { closeDamagePicker(); return; }
-        var actionToggle = event.target.closest ? event.target.closest('.quote-part-actions-toggle') : null;
-        if (actionToggle) {
-            event.preventDefault();
-            var actions = actionToggle.closest('.quote-part-actions');
-            var willOpen = !actions.classList.contains('open');
-            closeActionMenus(actions);
-            actions.classList.toggle('open', willOpen);
-            actionToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-            return;
-        }
         var editButton = event.target.closest ? event.target.closest('.quote-part-edit') : null;
         if (editButton) { event.preventDefault(); closeActionMenus(); openPartEditor(editButton.closest('tr')); return; }
         var deleteButton = event.target.closest ? event.target.closest('.quote-part-delete') : null;

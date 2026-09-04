@@ -70,6 +70,56 @@
         closeBeneficiaryPicker();
     }
 
+    function addEmptyBeneficiary(trigger) {
+        var table = trigger.closest('table');
+        if (!table) return;
+        var body = table.querySelector('.beneficiary-rows');
+        var emptyRow = body.querySelector('.beneficiary-empty');
+        if (emptyRow) body.removeChild(emptyRow);
+        var index = body.querySelectorAll('tr').length;
+        var prefix = 'OtherBeneficiaries[' + index + ']';
+        var row = document.createElement('tr');
+        row.innerHTML = '<td class="beneficiary-action-column"><button type="button" class="beneficiary-delete" aria-label="Xóa đối tượng hưởng khác" title="Xóa">🗑</button></td><td><input type="hidden" name="' + prefix + '.Id" value="0"><input class="form-control" name="' + prefix + '.Code"></td><td><input class="form-control" name="' + prefix + '.Name"></td><td><input class="form-control" name="' + prefix + '.Currency" value="VND"></td><td><input class="form-control right" type="number" min="0" name="' + prefix + '.Amount" value="0"></td>';
+        body.appendChild(row);
+        row.querySelector('input[name$=".Code"]').focus();
+    }
+
+    function deleteBeneficiary(button) {
+        var body = button.closest('.beneficiary-rows');
+        body.removeChild(button.closest('tr'));
+        var rows = body.querySelectorAll('tr:not(.beneficiary-empty)');
+        for (var i = 0; i < rows.length; i++) {
+            var fields = rows[i].querySelectorAll('[name]');
+            for (var j = 0; j < fields.length; j++) fields[j].name = fields[j].name.replace(/^OtherBeneficiaries\[\d+\]/, 'OtherBeneficiaries[' + i + ']');
+        }
+        if (!rows.length) body.innerHTML = '<tr class="beneficiary-empty"><td colspan="5" class="muted center">Chưa có dữ liệu</td></tr>';
+    }
+
+    function addEmptyThirdParty(trigger) {
+        var table = trigger.closest('table');
+        if (!table) return;
+        var body = table.querySelector('.third-party-rows');
+        var emptyRow = body.querySelector('.third-party-empty');
+        if (emptyRow) body.removeChild(emptyRow);
+        var index = body.querySelectorAll('tr').length;
+        var prefix = 'ThirdParties[' + index + ']';
+        var row = document.createElement('tr');
+        row.innerHTML = '<td class="third-party-add-column"><button type="button" class="third-party-delete" aria-label="Xóa người thứ ba" title="Xóa">🗑</button></td><td><input class="form-control" name="' + prefix + '.Name"></td><td><input class="form-control" name="' + prefix + '.Currency" value="VND"></td><td><input class="form-control right" type="number" min="0" name="' + prefix + '.Amount" value="0"></td>';
+        body.appendChild(row);
+        row.querySelector('input[name$=".Name"]').focus();
+    }
+
+    function deleteThirdParty(button) {
+        var body = button.closest('.third-party-rows');
+        body.removeChild(button.closest('tr'));
+        var rows = body.querySelectorAll('tr:not(.third-party-empty)');
+        for (var i = 0; i < rows.length; i++) {
+            var fields = rows[i].querySelectorAll('[name]');
+            for (var j = 0; j < fields.length; j++) fields[j].name = fields[j].name.replace(/^ThirdParties\[\d+\]/, 'ThirdParties[' + i + ']');
+        }
+        if (!rows.length) body.innerHTML = '<tr class="third-party-empty"><td colspan="4" class="muted center">Chưa có dữ liệu</td></tr>';
+    }
+
     function openBeneficiaryPicker(trigger) {
         activeBeneficiaryTable = trigger.closest('table');
         var modal = ensureBeneficiaryModal();
@@ -308,7 +358,13 @@
 
     document.addEventListener('click', function (event) {
         var beneficiaryTrigger = event.target.closest ? event.target.closest('.beneficiary-add-trigger') : null;
-        if (beneficiaryTrigger) { event.preventDefault(); openBeneficiaryPicker(beneficiaryTrigger); return; }
+        if (beneficiaryTrigger) { event.preventDefault(); addEmptyBeneficiary(beneficiaryTrigger); return; }
+        var beneficiaryDelete = event.target.closest ? event.target.closest('.beneficiary-delete') : null;
+        if (beneficiaryDelete) { event.preventDefault(); deleteBeneficiary(beneficiaryDelete); return; }
+        var thirdPartyTrigger = event.target.closest ? event.target.closest('.third-party-add-trigger') : null;
+        if (thirdPartyTrigger) { event.preventDefault(); addEmptyThirdParty(thirdPartyTrigger); return; }
+        var thirdPartyDelete = event.target.closest ? event.target.closest('.third-party-delete') : null;
+        if (thirdPartyDelete) { event.preventDefault(); deleteThirdParty(thirdPartyDelete); return; }
         if (event.target.className.indexOf('beneficiary-picker-close') !== -1) { closeBeneficiaryPicker(); return; }
         if (event.target.id === 'BeneficiaryPickerModal') { closeBeneficiaryPicker(); return; }
         var editCoverage = event.target.closest ? event.target.closest('.coverage-edit') : null;

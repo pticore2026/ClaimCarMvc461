@@ -1,6 +1,6 @@
 @model ClaimCar.Web.Models.Claim
 @{ ViewBag.Title=Model.Id==0?"Tạo hồ sơ":"Thông tin chung"; var isNew=Model.Id==0; }
-<div class="toolbar"><div><h1>@(isNew?"Tạo hồ sơ bồi thường":"Chi tiết hồ sơ")</h1>@if (!isNew) {<div class="muted">Thông tin chung theo sheet thong_tin_chung.</div>}</div><a class="btn btn-secondary" href="@Url.Action("Index")">Danh sách hồ sơ</a></div>
+<div class="toolbar"><div><h1>@(isNew?"Tạo hồ sơ bồi thường":"Chi tiết hồ sơ")</h1></div><a class="btn btn-secondary" href="@Url.Action("Index")">Danh sách hồ sơ</a></div>
 @if(!isNew){<div class="tabs"><a class="tab active" href="@Url.Action("Edit","Claim",new{id=Model.Id})">Thông tin chung</a><a class="tab" href="@Url.Action("Edit","LossPayment",new{claimId=Model.Id})">Tổn thất / Chi trả</a><a class="tab" href="@Url.Action("Edit","Quote",new{claimId=Model.Id})">Báo giá</a></div>}
 <div class="card">
 @using(Html.BeginForm("Edit","Claim",FormMethod.Post,new{accept_charset="utf-8"})){
@@ -17,11 +17,10 @@ if(!ViewData.ModelState.IsValid){<div class="notice notice-error">@Html.Validati
 <div class="form-group"><label>Ngày quyết định</label><input class="form-control" type="date" name="DecisionDate" value="@(Model.DecisionDate.HasValue?Model.DecisionDate.Value.ToString("yyyy-MM-dd"):"")"/></div>
 <div class="form-group"><label class="required">Ngày xảy ra</label><input class="form-control" type="date" name="AccidentDate" value="@Model.AccidentDate.ToString("yyyy-MM-dd")"/></div>
 <div class="form-group"><label class="required">Ngày thông báo</label><input class="form-control" type="date" name="NotificationDate" value="@Model.NotificationDate.ToString("yyyy-MM-dd")"/></div>
-<div class="form-group"><label>Số hồ sơ</label>@Html.TextBoxFor(x=>x.ClaimNumber,new{@class="form-control"})</div>
+<div class="form-group"><label>Số hồ sơ</label>@Html.TextBoxFor(x=>x.ClaimNumber,new{@class="form-control readonly",@readonly="readonly",placeholder="Tự động sinh khi lưu"})</div>
 <div class="form-group"><label>Mã giám định viên</label>@Html.TextBoxFor(x=>x.SurveyorCode,new{@class="form-control"})</div>
 <div class="form-group"><label>Giá trị xe / tiền bảo hiểm</label>@Html.TextBoxFor(x=>x.InsuredValue,new{@class="form-control right",type="number",step="1"})</div>
 </div>
 <div class="summary-strip"><div>Số hồ sơ: <strong>@(string.IsNullOrWhiteSpace(Model.ClaimNumber)?"(chưa cấp)":Model.ClaimNumber)</strong></div><div>Mã giám định viên: <strong>@(string.IsNullOrWhiteSpace(Model.SurveyorCode)?"(chưa gán)":Model.SurveyorCode)</strong></div></div>
-<div class="footer-actions"><button class="btn js-next-tab" type="button">Tiếp theo</button></div>}
-@if(!isNew){using(Html.BeginForm("Delete","Claim",FormMethod.Post,new{@class="js-single-delete-form",style="margin-top:-46px;display:inline-block"})){@Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.Id"/><button class="btn btn-danger js-delete-claim" type="button" data-id="@Model.Id" data-url="@Url.Action("Delete","Claim")" data-success-url="@Url.Action("Index","Claim")">Xóa hồ sơ</button>}}
+<div class="footer-actions">@if(isNew){<button class="btn" type="submit">Lưu</button>}else{<button class="btn js-next-tab" type="button">Tiếp theo</button>}</div>}
 </div>

@@ -14,9 +14,13 @@ namespace ClaimCar.Web.Controllers
             var claim=_service.Repository.Get(claimId);
             ViewBag.Claim=claim;
             if(claim==null)return HttpNotFound();
-            ViewBag.VehiclePolicy=_service.Repository.GetVehiclePolicy(claim.PolicyNumber);
+            var policy=_service.Repository.GetVehiclePolicy(claim.PolicyNumber);
+            ViewBag.VehiclePolicy=policy;
             ViewBag.ClaimId=claimId;
-            return View(_service.Repository.GetQuote(claimId));
+            var model=_service.Repository.GetQuote(claimId);
+            if(policy!=null&&policy.VehicleValue>0)
+                model.ParticipationValuePercent=Math.Round(policy.InsuredAmount*100m/policy.VehicleValue,2,MidpointRounding.AwayFromZero);
+            return View(model);
         }
         [HttpPost,ValidateAntiForgeryToken]
         public ActionResult Edit(QuoteViewModel m)
@@ -25,8 +29,9 @@ namespace ClaimCar.Web.Controllers
             VehiclePolicy policy=null;
             if(ViewBag.Claim!=null)policy=_service.Repository.GetVehiclePolicy(ViewBag.Claim.PolicyNumber);
             ViewBag.VehiclePolicy=policy;
-            if(policy!=null)m.DeductibleAmount=policy.Deductible*Math.Max(0,m.DeductibleCases);
-            ModelState.Remove("DeductibleAmount");
+            if(policy!=null&&policy.VehicleValue>0)
+                m.ParticipationValuePercent=Math.Round(policy.InsuredAmount*100m/policy.VehicleValue,2,MidpointRounding.AwayFromZero);
+            ModelState.Remove("ParticipationValuePercent");
             ViewBag.ClaimId=m.ClaimId;
             m.Items=m.Items??new System.Collections.Generic.List<QuoteItem>();
             m.RepairTotal=m.Items.Where(x=>string.Equals(x.Proposal,"Sửa chữa",StringComparison.OrdinalIgnoreCase)).Sum(x=>x.PartAmount);
@@ -51,6 +56,10 @@ namespace ClaimCar.Web.Controllers
                 ModelState.AddModelError("","Các tỷ lệ giảm giá phải nằm trong khoảng 0% đến 100%.");
             if(m.CompensationReductionPercent<0||m.RiskSharingPercent<0||m.CompensationReductionPercent+m.RiskSharingPercent>100)
                 ModelState.AddModelError("","Tổng tỷ lệ giảm trừ bồi thường và chia sẻ rủi ro phải nằm trong khoảng 0% đến 100%.");
+            if(m.ParticipationValuePercent<0||m.ParticipationValuePercent>100||m.ParticipationFeePercent<0||m.ParticipationFeePercent>100)
+                ModelState.AddModelError("","Tỷ lệ giá trị và tỷ lệ phí tham gia bảo hiểm phải nằm trong khoảng 0% đến 100%.");
+            if(m.ReplacementDepreciationPercent<0||m.ReplacementDepreciationPercent>100||m.SpecialDepreciationPercent<0||m.SpecialDepreciationPercent>100)
+                ModelState.AddModelError("","Các tỷ lệ khấu hao phải nằm trong khoảng 0% đến 100%.");
 
             if(policy==null)
                 ModelState.AddModelError("","Không xác định được hợp đồng để tính số tiền bồi thường.");
@@ -76,7 +85,9 @@ namespace ClaimCar.Web.Controllers
                 m.CompensationReductionAmount=compensationReduction;
                 var riskSharing=afterDeductible*m.RiskSharingPercent/100m;
                 m.ApprovedTotal=Math.Max(0,afterDeductible-compensationReduction-riskSharing);
-                m.CustomerPaymentTotal=Math.Max(0,coveredAmount-m.ApprovedTotal);
+                var participationValueAmount=afterDeductible*(100m-m.ParticipationValuePercent)/100m;
+                var participationFeeAmount=afterDeductible*(100m-m.ParticipationFeePercent)/100m;
+                m.CustomerPaymentTotal=Math.Max(0,depreciation+participationValueAmount+participationFeeAmount+m.DeductibleAmount+compensationReduction+riskSharing);
             }
             ModelState.Remove("CustomerPaymentTotal");
             ModelState.Remove("ApprovedTotal");

@@ -54,8 +54,8 @@ namespace ClaimCar.Web.Models
         public decimal SpecialDepreciationPercent { get; set; }
         public decimal ParticipationValuePercent { get; set; }
         public decimal ParticipationFeePercent { get; set; }
-        public int DeductibleCases { get; set; }
-        public decimal DeductibleAmount { get; set; }
+        public int DeductibleCases { get; set; } = 1;
+        public decimal DeductibleAmount { get; set; } = 500000m;
         public decimal SupplementalDeductibleAmount { get; set; }
         public decimal CompensationReductionPercent { get; set; }
         public decimal CompensationReductionAmount { get; set; }

@@ -257,9 +257,10 @@
         function value(selector) { var input = card.querySelector(selector); return input ? (parseFloat(input.value) || 0) : 0; }
         var actualValue = value('[name="ActualValue"]');
         var insuredAmount = value('#PolicyInsuredAmount');
-        var deductible = value('#PolicyDeductible') * Math.max(0, value('[name="DeductibleCases"]'));
-        var deductibleInput = card.querySelector('[name="DeductibleAmount"]');
-        if (deductibleInput) deductibleInput.value = deductible;
+        var policyVehicleValue = value('#PolicyVehicleValue');
+        var participationValueInput = card.querySelector('[name="ParticipationValuePercent"]');
+        if (participationValueInput) participationValueInput.value = policyVehicleValue > 0 ? (insuredAmount * 100 / policyVehicleValue).toFixed(2) : 0;
+        var deductible = Math.max(0, value('[name="DeductibleAmount"]'));
         if (actualValue <= 0 || insuredAmount <= 0) {
             var emptyResult = card.querySelector('[name="ApprovedTotal"]');
             if (emptyResult) emptyResult.value = 0;
@@ -282,10 +283,13 @@
         }
         var riskSharing = afterDeductible * value('[name="RiskSharingPercent"]') / 100;
         var compensation = Math.max(0, afterDeductible - reductionAmount - riskSharing);
+        var participationValueAmount = afterDeductible * (100 - value('[name="ParticipationValuePercent"]')) / 100;
+        var participationFeeAmount = afterDeductible * (100 - value('[name="ParticipationFeePercent"]')) / 100;
+        var customerPayment = depreciation + participationValueAmount + participationFeeAmount + deductible + reductionAmount + riskSharing;
         var approvedInput = card.querySelector('[name="ApprovedTotal"]');
         var customerInput = card.querySelector('[name="CustomerPaymentTotal"]');
         if (approvedInput) approvedInput.value = compensation.toFixed(2);
-        if (customerInput) customerInput.value = Math.max(0, coveredAmount - compensation).toFixed(2);
+        if (customerInput) customerInput.value = Math.max(0, customerPayment).toFixed(2);
     }
 
     function ensureDamagePicker() {
@@ -469,6 +473,11 @@
         if (event.target.className.indexOf('quote-part-picker-close') !== -1 || event.target.id === 'QuotePartPickerModal') closePicker();
     });
     document.addEventListener('input', function (event) {
+        if (event.target.id === 'DeductibleCases') {
+            var deductibleAmount = document.getElementById('DeductibleAmount');
+            var deductibleCases = Math.max(0, parseInt(event.target.value, 10) || 0);
+            if (deductibleAmount) deductibleAmount.value = 500000 * deductibleCases;
+        }
         if (event.target.id === 'CompensationReductionAmount') {
             var percent = document.getElementById('CompensationReductionPercent');
             if (percent) percent.value = 0;

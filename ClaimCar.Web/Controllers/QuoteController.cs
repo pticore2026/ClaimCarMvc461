@@ -16,16 +16,12 @@ namespace ClaimCar.Web.Controllers
             if(claim==null)return HttpNotFound();
             ViewBag.VehiclePolicy=_service.Repository.GetVehiclePolicy(claim.PolicyNumber);
             ViewBag.ClaimId=claimId;
-            var model=_service.Repository.GetQuote(claimId);
-            model.ActualValue=claim.InsuredValue;
-            return View(model);
+            return View(_service.Repository.GetQuote(claimId));
         }
         [HttpPost,ValidateAntiForgeryToken]
         public ActionResult Edit(QuoteViewModel m)
         {
             ViewBag.Claim=_service.Repository.Get(m.ClaimId);
-            if(ViewBag.Claim!=null)m.ActualValue=ViewBag.Claim.InsuredValue;
-            ModelState.Remove("ActualValue");
             VehiclePolicy policy=null;
             if(ViewBag.Claim!=null)policy=_service.Repository.GetVehiclePolicy(ViewBag.Claim.PolicyNumber);
             ViewBag.VehiclePolicy=policy;

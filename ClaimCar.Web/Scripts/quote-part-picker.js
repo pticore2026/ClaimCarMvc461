@@ -250,6 +250,42 @@
         if (replacementCost) replacementCost.value = (replacementAmount + specialReplacementAmount).toLocaleString('vi-VN');
         if (depreciationCost) depreciationCost.value = ((replacementAmount * value('ReplacementDepreciationPercent') / 100) + (specialReplacementAmount * value('SpecialDepreciationPercent') / 100)).toLocaleString('vi-VN');
         if (towingCost) towingCost.value = towingAmount.toLocaleString('vi-VN');
+        recalculateCompensation(card, repairAmount + paintAmount + laborAmount, replacementAmount, specialReplacementAmount, towingAmount);
+    }
+
+    function recalculateCompensation(card, repairCost, replacementAmount, specialReplacementAmount, towingCost) {
+        function value(selector) { var input = card.querySelector(selector); return input ? (parseFloat(input.value) || 0) : 0; }
+        var actualValue = value('[name="ActualValue"]');
+        var insuredAmount = value('#PolicyInsuredAmount');
+        var deductible = value('#PolicyDeductible') * Math.max(0, value('[name="DeductibleCases"]'));
+        var deductibleInput = card.querySelector('[name="DeductibleAmount"]');
+        if (deductibleInput) deductibleInput.value = deductible;
+        if (actualValue <= 0 || insuredAmount <= 0) {
+            var emptyResult = card.querySelector('[name="ApprovedTotal"]');
+            if (emptyResult) emptyResult.value = 0;
+            return;
+        }
+        var depreciation = (replacementAmount * value('[name="ReplacementDepreciationPercent"]') / 100)
+            + (specialReplacementAmount * value('[name="SpecialDepreciationPercent"]') / 100);
+        var coveredAmount = Math.max(0, (repairCost + replacementAmount + specialReplacementAmount - depreciation + towingCost) * insuredAmount / actualValue);
+        var afterDeductible = Math.max(0, coveredAmount - deductible);
+        var reductionPercentInput = card.querySelector('[name="CompensationReductionPercent"]');
+        var reductionAmountInput = card.querySelector('[name="CompensationReductionAmount"]');
+        var reductionAmount = value('[name="CompensationReductionAmount"]');
+        if (reductionAmount > 0) {
+            var convertedPercent = afterDeductible > 0 ? Math.min(100, reductionAmount * 100 / afterDeductible) : 0;
+            if (reductionPercentInput) reductionPercentInput.value = convertedPercent.toFixed(2);
+            reductionAmount = afterDeductible * convertedPercent / 100;
+        } else {
+            reductionAmount = afterDeductible * value('[name="CompensationReductionPercent"]') / 100;
+            if (reductionAmountInput) reductionAmountInput.value = reductionAmount.toFixed(2);
+        }
+        var riskSharing = afterDeductible * value('[name="RiskSharingPercent"]') / 100;
+        var compensation = Math.max(0, afterDeductible - reductionAmount - riskSharing);
+        var approvedInput = card.querySelector('[name="ApprovedTotal"]');
+        var customerInput = card.querySelector('[name="CustomerPaymentTotal"]');
+        if (approvedInput) approvedInput.value = compensation.toFixed(2);
+        if (customerInput) customerInput.value = Math.max(0, coveredAmount - compensation).toFixed(2);
     }
 
     function ensureDamagePicker() {

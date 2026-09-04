@@ -101,12 +101,12 @@ namespace ClaimCar.Web.Services
 
         private string ValidateApprovedAmount(QuoteViewModel model,Claim claim)
         {
-            if(model.ApprovedTotal<0||model.CustomerPaymentTotal<0)return "Tổng duyệt giá và số tiền khách hàng thanh toán không được âm.";
+            if(model.ApprovedTotal<0||model.CustomerPaymentTotal<0)return "Số tiền bồi thường và số tiền khách hàng thanh toán không được âm.";
             var policy=_repo.GetVehiclePolicy(claim.PolicyNumber);
             if(policy==null)return "Không tìm thấy hợp đồng bảo hiểm để kiểm tra hạn mức.";
             if(policy.VehicleValue<=0)return "Hợp đồng chưa có giá trị xe hợp lệ để kiểm tra hạn mức bồi thường.";
-            if(model.ApprovedTotal>policy.VehicleValue*MaxLossRatio())return "Tổng duyệt giá vượt hạn mức theo giá trị xe của hợp đồng.";
-            if(policy.InsuredAmount>0&&model.ApprovedTotal>policy.InsuredAmount)return "Tổng duyệt giá vượt số tiền bảo hiểm của hợp đồng.";
+            if(model.ApprovedTotal>policy.VehicleValue*MaxLossRatio())return "Số tiền bồi thường vượt hạn mức theo giá trị xe của hợp đồng.";
+            if(policy.InsuredAmount>0&&model.ApprovedTotal>policy.InsuredAmount)return "Số tiền bồi thường vượt số tiền bảo hiểm của hợp đồng.";
             return null;
         }
 

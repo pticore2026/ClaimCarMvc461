@@ -92,10 +92,17 @@ namespace ClaimCar.Web.Repositories
                 TONG_THAY_THE NUMERIC, TONG_THAY_THE_DB NUMERIC, TONG_SUA_CHUA NUMERIC, TONG_SON NUMERIC, TONG_CONG NUMERIC, TONG_CAU_KEO NUMERIC,
                 GG_THAY_THE NUMERIC, GG_SUA_CHUA NUMERIC, GG_SON NUMERIC, KHAU_HAO_THAY_THE NUMERIC, KHAU_HAO_DB NUMERIC,
                 TL_GIA_TRI_THAM_GIA NUMERIC, TL_PHI_THAM_GIA NUMERIC, SO_VU_KHAU_TRU INTEGER, MUC_KHAU_TRU NUMERIC,
-                GIAM_TRU_BT NUMERIC, CHIA_SE_RUI_RO NUMERIC, KHACH_HANG_THANH_TOAN NUMERIC, TONG_DUYET_GIA NUMERIC, CHECKER TEXT);
+                GIAM_TRU_BT NUMERIC, CHIA_SE_RUI_RO NUMERIC, KHACH_HANG_THANH_TOAN NUMERIC, TONG_DUYET_GIA NUMERIC, CHECKER TEXT,
+                CHI_PHI_CAN_THIET_HOP_LY NUMERIC NOT NULL DEFAULT 0, KHAU_TRU_RIENG_DKBS NUMERIC NOT NULL DEFAULT 0,
+                LOAI_BOI_THUONG TEXT NOT NULL DEFAULT 'Bộ phận', THIET_HAI_NGOAI_PHAM_VI NUMERIC NOT NULL DEFAULT 0,
+                GG_CONG NUMERIC NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS CLAIM_QUOTE_ITEM (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT, CLAIM_ID INTEGER NOT NULL REFERENCES CLAIM_GENERAL(ID) ON DELETE CASCADE,
-                MA_PHU_TUNG TEXT, TEN_PHU_TUNG TEXT, SO_LUONG INTEGER, PHUONG_AN TEXT, LOAI_PT TEXT, GIA_PT NUMERIC, SON NUMERIC, CONG NUMERIC);";
+                MA_PHU_TUNG TEXT, TEN_PHU_TUNG TEXT, SO_LUONG INTEGER, THIET_HAI TEXT, KICH_THUOC TEXT, PHUONG_AN TEXT, LOAI_PT TEXT, GIA_PT NUMERIC, SON NUMERIC, CONG NUMERIC);
+            CREATE TABLE IF NOT EXISTS CLAIM_QUOTE_DISCOUNT (
+                CLAIM_ID INTEGER PRIMARY KEY REFERENCES CLAIM_GENERAL(ID) ON DELETE CASCADE,
+                GG_THAY_THE_DB NUMERIC NOT NULL DEFAULT 0, GG_CAU_KEO NUMERIC NOT NULL DEFAULT 0,
+                SO_TIEN_GIAM_TRU_BT NUMERIC NOT NULL DEFAULT 0);";
 
         private readonly string _connectionString;
 
@@ -115,6 +122,9 @@ namespace ClaimCar.Web.Repositories
             EnsureCoverageLossPercentColumn();
             EnsureBeneficiaryPaymentColumns();
             EnsureQuotePartCodeColumn();
+            EnsureQuoteItemDetailColumns();
+            EnsureQuoteCompensationColumns();
+            EnsureQuoteDiscountColumns();
         }
 
         public IList<Claim> Search(string keyword, string status)
@@ -230,8 +240,9 @@ namespace ClaimCar.Web.Repositories
             var model=new QuoteViewModel{ClaimId=claimId,Items=new List<QuoteItem>()};
             using(var connection=OpenConnection())
             {
-                using(var c=connection.CreateCommand()){c.CommandText="SELECT * FROM CLAIM_QUOTE WHERE CLAIM_ID=@id";Add(c,"@id",claimId);using(var r=c.ExecuteReader())if(r.Read()){model.ApprovalType=Text(r,"KIEU_DUYET");model.ActualValue=Decimal(r,"GIA_TRI_THUC_TE");model.SubmitDate=NullableDate(r["NGAY_TRINH"]);model.ReductionReason=Text(r,"LY_DO_GIAM_TRU");model.ReplacementTotal=Decimal(r,"TONG_THAY_THE");model.SpecialReplacementTotal=Decimal(r,"TONG_THAY_THE_DB");model.RepairTotal=Decimal(r,"TONG_SUA_CHUA");model.PaintTotal=Decimal(r,"TONG_SON");model.LaborTotal=Decimal(r,"TONG_CONG");model.TowingTotal=Decimal(r,"TONG_CAU_KEO");model.ReplacementDiscountPercent=Decimal(r,"GG_THAY_THE");model.RepairDiscountPercent=Decimal(r,"GG_SUA_CHUA");model.PaintDiscountPercent=Decimal(r,"GG_SON");model.ReplacementDepreciationPercent=Decimal(r,"KHAU_HAO_THAY_THE");model.SpecialDepreciationPercent=Decimal(r,"KHAU_HAO_DB");model.ParticipationValuePercent=Decimal(r,"TL_GIA_TRI_THAM_GIA");model.ParticipationFeePercent=Decimal(r,"TL_PHI_THAM_GIA");model.DeductibleCases=Int(r,"SO_VU_KHAU_TRU");model.DeductibleAmount=Decimal(r,"MUC_KHAU_TRU");model.CompensationReductionPercent=Decimal(r,"GIAM_TRU_BT");model.RiskSharingPercent=Decimal(r,"CHIA_SE_RUI_RO");model.CustomerPaymentTotal=Decimal(r,"KHACH_HANG_THANH_TOAN");model.ApprovedTotal=Decimal(r,"TONG_DUYET_GIA");model.Checker=Text(r,"CHECKER");}}
-                ReadRows(connection,"SELECT * FROM CLAIM_QUOTE_ITEM WHERE CLAIM_ID=@id ORDER BY ID",claimId,r=>model.Items.Add(new QuoteItem{Id=Int(r,"ID"),PartCode=Text(r,"MA_PHU_TUNG"),PartName=Text(r,"TEN_PHU_TUNG"),Quantity=Int(r,"SO_LUONG"),Proposal=Text(r,"PHUONG_AN"),PartType=Text(r,"LOAI_PT"),PartPrice=Decimal(r,"GIA_PT"),PaintCost=Decimal(r,"SON"),LaborCost=Decimal(r,"CONG")}));
+                using(var c=connection.CreateCommand()){c.CommandText="SELECT * FROM CLAIM_QUOTE WHERE CLAIM_ID=@id";Add(c,"@id",claimId);using(var r=c.ExecuteReader())if(r.Read()){model.ApprovalType=Text(r,"KIEU_DUYET");model.CompensationMethod=Text(r,"LOAI_BOI_THUONG");model.ActualValue=Decimal(r,"GIA_TRI_THUC_TE");model.UncoveredDamageValue=Decimal(r,"THIET_HAI_NGOAI_PHAM_VI");model.SubmitDate=NullableDate(r["NGAY_TRINH"]);model.ReductionReason=Text(r,"LY_DO_GIAM_TRU");model.ReplacementTotal=Decimal(r,"TONG_THAY_THE");model.SpecialReplacementTotal=Decimal(r,"TONG_THAY_THE_DB");model.RepairTotal=Decimal(r,"TONG_SUA_CHUA");model.PaintTotal=Decimal(r,"TONG_SON");model.LaborTotal=Decimal(r,"TONG_CONG");model.TowingTotal=Decimal(r,"TONG_CAU_KEO");model.NecessaryReasonableCost=Decimal(r,"CHI_PHI_CAN_THIET_HOP_LY");model.ReplacementDiscountPercent=Decimal(r,"GG_THAY_THE");model.RepairDiscountPercent=Decimal(r,"GG_SUA_CHUA");model.PaintDiscountPercent=Decimal(r,"GG_SON");model.LaborDiscountPercent=Decimal(r,"GG_CONG");model.ReplacementDepreciationPercent=Decimal(r,"KHAU_HAO_THAY_THE");model.SpecialDepreciationPercent=Decimal(r,"KHAU_HAO_DB");model.ParticipationValuePercent=Decimal(r,"TL_GIA_TRI_THAM_GIA");model.ParticipationFeePercent=Decimal(r,"TL_PHI_THAM_GIA");model.DeductibleCases=Int(r,"SO_VU_KHAU_TRU");model.DeductibleAmount=Decimal(r,"MUC_KHAU_TRU");model.SupplementalDeductibleAmount=Decimal(r,"KHAU_TRU_RIENG_DKBS");model.CompensationReductionPercent=Decimal(r,"GIAM_TRU_BT");model.RiskSharingPercent=Decimal(r,"CHIA_SE_RUI_RO");model.CustomerPaymentTotal=Decimal(r,"KHACH_HANG_THANH_TOAN");model.ApprovedTotal=Decimal(r,"TONG_DUYET_GIA");model.Checker=Text(r,"CHECKER");}}
+                using(var c=connection.CreateCommand()){c.CommandText="SELECT GG_THAY_THE_DB,GG_CAU_KEO,SO_TIEN_GIAM_TRU_BT FROM CLAIM_QUOTE_DISCOUNT WHERE CLAIM_ID=@id";Add(c,"@id",claimId);using(var r=c.ExecuteReader())if(r.Read()){model.SpecialReplacementDiscountPercent=Decimal(r,"GG_THAY_THE_DB");model.TowingDiscountPercent=Decimal(r,"GG_CAU_KEO");model.CompensationReductionAmount=Decimal(r,"SO_TIEN_GIAM_TRU_BT");}}
+                ReadRows(connection,"SELECT * FROM CLAIM_QUOTE_ITEM WHERE CLAIM_ID=@id ORDER BY ID",claimId,r=>model.Items.Add(new QuoteItem{Id=Int(r,"ID"),PartCode=Text(r,"MA_PHU_TUNG"),PartName=Text(r,"TEN_PHU_TUNG"),Quantity=Int(r,"SO_LUONG"),Damage=Text(r,"THIET_HAI"),Dimensions=Text(r,"KICH_THUOC"),Proposal=Text(r,"PHUONG_AN"),PartType=Text(r,"LOAI_PT"),PartPrice=Decimal(r,"GIA_PT"),PaintCost=Decimal(r,"SON"),LaborCost=Decimal(r,"CONG")}));
             }
             return model;
         }
@@ -240,8 +251,9 @@ namespace ClaimCar.Web.Repositories
         {
             using(var connection=OpenConnection())using(var transaction=connection.BeginTransaction())
             {
-                Execute(connection,transaction,"INSERT OR REPLACE INTO CLAIM_QUOTE VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o,@p,@q,@r,@s,@t,@u,@v,@w,@x)",c=>{Add(c,"@id",m.ClaimId);Add(c,"@a",m.ApprovalType);Add(c,"@b",m.ActualValue);Add(c,"@c",IsoDate(m.SubmitDate));Add(c,"@d",m.ReductionReason);Add(c,"@e",m.ReplacementTotal);Add(c,"@f",m.SpecialReplacementTotal);Add(c,"@g",m.RepairTotal);Add(c,"@h",m.PaintTotal);Add(c,"@i",m.LaborTotal);Add(c,"@j",m.TowingTotal);Add(c,"@k",m.ReplacementDiscountPercent);Add(c,"@l",m.RepairDiscountPercent);Add(c,"@m",m.PaintDiscountPercent);Add(c,"@n",m.ReplacementDepreciationPercent);Add(c,"@o",m.SpecialDepreciationPercent);Add(c,"@p",m.ParticipationValuePercent);Add(c,"@q",m.ParticipationFeePercent);Add(c,"@r",m.DeductibleCases);Add(c,"@s",m.DeductibleAmount);Add(c,"@t",m.CompensationReductionPercent);Add(c,"@u",m.RiskSharingPercent);Add(c,"@v",m.CustomerPaymentTotal);Add(c,"@w",m.ApprovedTotal);Add(c,"@x",m.Checker);});
-                ReplaceChildren(connection,transaction,"CLAIM_QUOTE_ITEM",m.ClaimId,m.Items,(c,x)=>{c.CommandText="INSERT INTO CLAIM_QUOTE_ITEM(CLAIM_ID,MA_PHU_TUNG,TEN_PHU_TUNG,SO_LUONG,PHUONG_AN,LOAI_PT,GIA_PT,SON,CONG) VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h)";Add(c,"@a",x.PartCode);Add(c,"@b",x.PartName);Add(c,"@c",x.Quantity);Add(c,"@d",x.Proposal);Add(c,"@e",x.PartType);Add(c,"@f",x.PartPrice);Add(c,"@g",x.PaintCost);Add(c,"@h",x.LaborCost);});
+                Execute(connection,transaction,"INSERT OR REPLACE INTO CLAIM_QUOTE(CLAIM_ID,KIEU_DUYET,GIA_TRI_THUC_TE,NGAY_TRINH,LY_DO_GIAM_TRU,TONG_THAY_THE,TONG_THAY_THE_DB,TONG_SUA_CHUA,TONG_SON,TONG_CONG,TONG_CAU_KEO,GG_THAY_THE,GG_SUA_CHUA,GG_SON,KHAU_HAO_THAY_THE,KHAU_HAO_DB,TL_GIA_TRI_THAM_GIA,TL_PHI_THAM_GIA,SO_VU_KHAU_TRU,MUC_KHAU_TRU,GIAM_TRU_BT,CHIA_SE_RUI_RO,KHACH_HANG_THANH_TOAN,TONG_DUYET_GIA,CHECKER,CHI_PHI_CAN_THIET_HOP_LY,KHAU_TRU_RIENG_DKBS,LOAI_BOI_THUONG,THIET_HAI_NGOAI_PHAM_VI,GG_CONG) VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o,@p,@q,@r,@s,@t,@u,@v,@w,@x,@y,@z,@aa,@ab,@ac)",c=>{Add(c,"@id",m.ClaimId);Add(c,"@a",m.ApprovalType);Add(c,"@b",m.ActualValue);Add(c,"@c",IsoDate(m.SubmitDate));Add(c,"@d",m.ReductionReason);Add(c,"@e",m.ReplacementTotal);Add(c,"@f",m.SpecialReplacementTotal);Add(c,"@g",m.RepairTotal);Add(c,"@h",m.PaintTotal);Add(c,"@i",m.LaborTotal);Add(c,"@j",m.TowingTotal);Add(c,"@k",m.ReplacementDiscountPercent);Add(c,"@l",m.RepairDiscountPercent);Add(c,"@m",m.PaintDiscountPercent);Add(c,"@n",m.ReplacementDepreciationPercent);Add(c,"@o",m.SpecialDepreciationPercent);Add(c,"@p",m.ParticipationValuePercent);Add(c,"@q",m.ParticipationFeePercent);Add(c,"@r",m.DeductibleCases);Add(c,"@s",m.DeductibleAmount);Add(c,"@t",m.CompensationReductionPercent);Add(c,"@u",m.RiskSharingPercent);Add(c,"@v",m.CustomerPaymentTotal);Add(c,"@w",m.ApprovedTotal);Add(c,"@x",m.Checker);Add(c,"@y",m.NecessaryReasonableCost);Add(c,"@z",m.SupplementalDeductibleAmount);Add(c,"@aa",m.CompensationMethod);Add(c,"@ab",m.UncoveredDamageValue);Add(c,"@ac",m.LaborDiscountPercent);});
+                Execute(connection,transaction,"INSERT OR REPLACE INTO CLAIM_QUOTE_DISCOUNT(CLAIM_ID,GG_THAY_THE_DB,GG_CAU_KEO,SO_TIEN_GIAM_TRU_BT) VALUES(@id,@a,@b,@c)",c=>{Add(c,"@id",m.ClaimId);Add(c,"@a",m.SpecialReplacementDiscountPercent);Add(c,"@b",m.TowingDiscountPercent);Add(c,"@c",m.CompensationReductionAmount);});
+                ReplaceChildren(connection,transaction,"CLAIM_QUOTE_ITEM",m.ClaimId,m.Items,(c,x)=>{c.CommandText="INSERT INTO CLAIM_QUOTE_ITEM(CLAIM_ID,MA_PHU_TUNG,TEN_PHU_TUNG,SO_LUONG,THIET_HAI,KICH_THUOC,PHUONG_AN,LOAI_PT,GIA_PT,SON,CONG) VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h,@i,@j)";Add(c,"@a",x.PartCode);Add(c,"@b",x.PartName);Add(c,"@c",x.Quantity);Add(c,"@d",x.Damage);Add(c,"@e",x.Dimensions);Add(c,"@f",x.Proposal);Add(c,"@g",x.PartType);Add(c,"@h",x.PartPrice);Add(c,"@i",x.PaintCost);Add(c,"@j",x.LaborCost);});
                 transaction.Commit();
             }
         }
@@ -328,6 +340,50 @@ namespace ClaimCar.Web.Repositories
                 using(var reader=command.ExecuteReader()) while(reader.Read()) if(string.Equals(reader["name"].ToString(),"MA_PHU_TUNG",StringComparison.OrdinalIgnoreCase)){exists=true;break;}
             }
             if(!exists)Execute("ALTER TABLE CLAIM_QUOTE_ITEM ADD COLUMN MA_PHU_TUNG TEXT",command=>{});
+        }
+
+        private void EnsureQuoteItemDetailColumns()
+        {
+            var hasDamage=false; var hasDimensions=false;
+            using(var connection=OpenConnection()) using(var command=connection.CreateCommand())
+            {
+                command.CommandText="PRAGMA table_info(CLAIM_QUOTE_ITEM)";
+                using(var reader=command.ExecuteReader()) while(reader.Read())
+                {
+                    var name=reader["name"].ToString();
+                    if(string.Equals(name,"THIET_HAI",StringComparison.OrdinalIgnoreCase))hasDamage=true;
+                    if(string.Equals(name,"KICH_THUOC",StringComparison.OrdinalIgnoreCase))hasDimensions=true;
+                }
+            }
+            if(!hasDamage)Execute("ALTER TABLE CLAIM_QUOTE_ITEM ADD COLUMN THIET_HAI TEXT",command=>{});
+            if(!hasDimensions)Execute("ALTER TABLE CLAIM_QUOTE_ITEM ADD COLUMN KICH_THUOC TEXT",command=>{});
+        }
+
+        private void EnsureQuoteCompensationColumns()
+        {
+            var columns=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using(var connection=OpenConnection()) using(var command=connection.CreateCommand())
+            {
+                command.CommandText="PRAGMA table_info(CLAIM_QUOTE)";
+                using(var reader=command.ExecuteReader()) while(reader.Read()) columns.Add(reader["name"].ToString());
+            }
+            if(!columns.Contains("CHI_PHI_CAN_THIET_HOP_LY"))Execute("ALTER TABLE CLAIM_QUOTE ADD COLUMN CHI_PHI_CAN_THIET_HOP_LY NUMERIC NOT NULL DEFAULT 0",command=>{});
+            if(!columns.Contains("KHAU_TRU_RIENG_DKBS"))Execute("ALTER TABLE CLAIM_QUOTE ADD COLUMN KHAU_TRU_RIENG_DKBS NUMERIC NOT NULL DEFAULT 0",command=>{});
+            if(!columns.Contains("LOAI_BOI_THUONG"))Execute("ALTER TABLE CLAIM_QUOTE ADD COLUMN LOAI_BOI_THUONG TEXT NOT NULL DEFAULT 'Bộ phận'",command=>{});
+            if(!columns.Contains("THIET_HAI_NGOAI_PHAM_VI"))Execute("ALTER TABLE CLAIM_QUOTE ADD COLUMN THIET_HAI_NGOAI_PHAM_VI NUMERIC NOT NULL DEFAULT 0",command=>{});
+            if(!columns.Contains("GG_CONG"))Execute("ALTER TABLE CLAIM_QUOTE ADD COLUMN GG_CONG NUMERIC NOT NULL DEFAULT 0",command=>{});
+        }
+
+        private void EnsureQuoteDiscountColumns()
+        {
+            var exists=false;
+            using(var connection=OpenConnection()) using(var command=connection.CreateCommand())
+            {
+                command.CommandText="PRAGMA table_info(CLAIM_QUOTE_DISCOUNT)";
+                using(var reader=command.ExecuteReader()) while(reader.Read())
+                    if(string.Equals(reader["name"].ToString(),"SO_TIEN_GIAM_TRU_BT",StringComparison.OrdinalIgnoreCase)){exists=true;break;}
+            }
+            if(!exists)Execute("ALTER TABLE CLAIM_QUOTE_DISCOUNT ADD COLUMN SO_TIEN_GIAM_TRU_BT NUMERIC NOT NULL DEFAULT 0",command=>{});
         }
 
         private SQLiteConnection OpenConnection()

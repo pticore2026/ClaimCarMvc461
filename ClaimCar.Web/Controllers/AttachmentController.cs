@@ -26,15 +26,14 @@ namespace ClaimCar.Web.Controllers
 
         public ActionResult Index(int? claimId, string type, string sort, int page=1)
         {
-            var claims=_service.Repository.Search(null,null);
-            var claim=claimId.HasValue?_service.Repository.Get(claimId.Value):claims.FirstOrDefault();
+            var claim=claimId.HasValue?_service.Repository.Get(claimId.Value):null;
             if(claimId.HasValue && claim==null)return HttpNotFound();
             type=IsCategory(type)?type:"all"; sort=sort=="name-asc"||sort=="name-desc"?sort:"default";
             var files=claim==null?new List<AttachmentItem>():ReadFiles(claim.Id,type,sort);
             var allImages=files.Where(x=>x.IsImage).ToList();
             var totalPages=Math.Max(1,(int)Math.Ceiling(allImages.Count/(double)ImagesPerPage)); page=Math.Max(1,Math.Min(page,totalPages));
             return View(new AttachmentViewModel{ClaimId=claim==null?(int?)null:claim.Id,ClaimNumber=claim==null?null:claim.ClaimNumber,
-                Type=type,Sort=sort,Page=page,TotalPages=totalPages,Claims=claims,Categories=Categories,Files=files,
+                Type=type,Sort=sort,Page=page,TotalPages=totalPages,Categories=Categories,Files=files,
                 Images=allImages.Skip((page-1)*ImagesPerPage).Take(ImagesPerPage).ToList()});
         }
 

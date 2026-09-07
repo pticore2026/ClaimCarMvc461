@@ -11,7 +11,6 @@ namespace ClaimCar.Web.Models
         public string Sort { get; set; }
         public int Page { get; set; }
         public int TotalPages { get; set; }
-        public IList<Claim> Claims { get; set; }
         public IList<AttachmentCategory> Categories { get; set; }
         public IList<AttachmentItem> Files { get; set; }
         public IList<AttachmentItem> Images { get; set; }

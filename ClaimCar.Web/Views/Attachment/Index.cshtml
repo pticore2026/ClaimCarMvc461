@@ -2,9 +2,10 @@
 @{ ViewBag.Title="Đính kèm chứng từ"; }
 <div class="toolbar"><div><h1>Đính kèm chứng từ</h1></div><a class="btn btn-secondary popup-hide" href="@Url.Action("Index","Claim")">Danh sách hồ sơ</a></div>
 @if(TempData["AttachmentError"]!=null){<div class="notice notice-error">@TempData["AttachmentError"]</div>}
+@if(!Model.ClaimId.HasValue){<div class="notice">Vui lòng lưu hồ sơ trước khi đính kèm chứng từ.</div>}
 <div class="card">
 @using(Html.BeginForm("Index","Attachment",FormMethod.Get,new{@class="attachment-filter"})){
-<div class="form-group"><label>Số hồ sơ</label><select class="form-control" name="claimId" onchange="this.form.submit()">@if(Model.Claims.Count==0){<option>Chưa có hồ sơ</option>}@foreach(var claim in Model.Claims){<option value="@claim.Id" @(Model.ClaimId==claim.Id?"selected":"")>@claim.ClaimNumber</option>}</select></div>
+<div class="form-group"><label for="attachment-claim-number">Số hồ sơ</label><input id="attachment-claim-number" class="form-control readonly" type="text" value="@Model.ClaimNumber" readonly placeholder="Hồ sơ chưa được lưu"/><input type="hidden" name="claimId" value="@Model.ClaimId"/></div>
 <div class="form-group"><label>Loại</label><select class="form-control" name="type" onchange="this.form.submit()"><option value="all" @(Model.Type=="all"?"selected":"")>Tất cả</option>@foreach(var category in Model.Categories){<option value="@category.Code" @(Model.Type==category.Code?"selected":"")>@category.Name</option>}</select></div>
 <div class="form-group"><label>Sắp xếp</label><select class="form-control" name="sort" onchange="this.form.submit()"><option value="default" @(Model.Sort=="default"?"selected":"")>Mặc định</option><option value="name-asc" @(Model.Sort=="name-asc"?"selected":"")>Tên A-Z</option><option value="name-desc" @(Model.Sort=="name-desc"?"selected":"")>Tên Z-A</option></select></div>
 }

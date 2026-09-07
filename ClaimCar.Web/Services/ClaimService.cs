@@ -26,6 +26,25 @@ namespace ClaimCar.Web.Services
             var ctx=Ctx("Thông tin chung",exceptId.HasValue?ExtensionOperation.Update:ExtensionOperation.Create,x);
             var vr=_extensions.Validate(ctx); return vr.IsValid?null:vr.Message;
         }
+        public string ValidateComplete(Claim claim,LossPaymentViewModel loss,QuoteViewModel quote)
+        {
+            var error=ValidateClaim(claim,null);if(error!=null)return error;
+            error=ValidateLossAmounts(loss,claim);if(error!=null)return error;
+            error=ValidateApprovedAmount(quote,claim);if(error!=null)return error;
+            foreach(var ctx in new[]{Ctx("Tổn thất - Chi trả",ExtensionOperation.Create,loss),Ctx("Báo giá",ExtensionOperation.Create,quote)})
+            {var result=_extensions.Validate(ctx);if(!result.IsValid)return result.Message;}
+            return null;
+        }
+        public int SaveComplete(Claim claim,LossPaymentViewModel loss,QuoteViewModel quote)
+        {
+            claim.Id=0;claim.ClaimNumber=GenerateClaimNumber();claim.Status="Mới tiếp nhận";
+            claim.CreatedBy=System.Web.HttpContext.Current==null?"system":System.Web.HttpContext.Current.User.Identity.Name;
+            var contexts=new[]{Ctx("Thông tin chung",ExtensionOperation.Create,claim),Ctx("Tổn thất - Chi trả",ExtensionOperation.Create,loss),Ctx("Báo giá",ExtensionOperation.Create,quote)};
+            foreach(var context in contexts)_extensions.BeforeSave(context);
+            claim.Id=_repo.InsertComplete(claim,loss,quote);
+            foreach(var context in contexts)_extensions.AfterSave(context);
+            return claim.Id;
+        }
         public int SaveClaim(Claim x)
         {
             x.ClaimNumber=string.IsNullOrWhiteSpace(x.ClaimNumber)?GenerateClaimNumber():x.ClaimNumber.Trim();

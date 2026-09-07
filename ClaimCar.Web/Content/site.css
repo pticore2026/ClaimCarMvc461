@@ -12,3 +12,7 @@ html,body{margin:0;padding:0;font-family:"Segoe UI",Arial,Tahoma,sans-serif;colo
 .quote-parts-scroll{max-height:420px;overflow:auto;border:1px solid #d4e2ee}.quote-parts-scroll .quote-parts-table{border:0;min-width:1100px}.quote-parts-scroll .quote-parts-table thead th{position:sticky;top:0;z-index:2}.quote-parts-scroll .quote-parts-table th:first-child,.quote-parts-scroll .quote-parts-table td:first-child{border-left:0}.quote-parts-scroll .quote-parts-table th:last-child,.quote-parts-scroll .quote-parts-table td:last-child{border-right:0}
 .reduction-reason-select{transition:border-color .15s,background-color .15s,box-shadow .15s}.reduction-reason-select:hover{border-color:#0b88ca;background:#e8f5fc;box-shadow:0 0 0 3px rgba(11,136,202,.18);color:#056fa9;font-weight:600}
 .seven-col{grid-template-columns:repeat(4,minmax(180px,1fr))}@media(max-width:1000px){.seven-col{grid-template-columns:repeat(2,minmax(180px,1fr))}}@media(max-width:600px){.seven-col{grid-template-columns:1fr}}
+
+button.tab{font-family:inherit;font-size:inherit;cursor:pointer}button.tab:focus-visible{outline:2px solid #087abf;outline-offset:2px}
+
+.topbar{position:sticky;top:0;z-index:100;height:auto;min-height:76px;gap:16px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}.top-actions{flex-wrap:wrap;gap:12px 20px}@media(max-width:800px){.topbar{padding:10px 14px}.brand{font-size:17px}.top-actions{display:flex;font-size:14px;gap:10px 14px}}

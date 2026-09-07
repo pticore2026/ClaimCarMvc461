@@ -19,6 +19,10 @@ namespace ClaimCar.Web.Repositories
             } return result;
         }
         public Claim Get(int id){using(var cn=new OracleConnection(_cs))using(var cmd=cn.CreateCommand()){cmd.CommandText="SELECT ID,MA_DON_VI,TEN_DON_VI,MA_KHU_VUC,TEN_KHU_VUC,BIEN_SO,NGAY_NHAP,NGAY_NHAP_CALL,SO_HOP_DONG,TINH_TRANG,NGAY_QUYET_DINH,NGAY_XAY_RA,NGAY_THONG_BAO,SO_HO_SO,MA_GDV,GIA_TRI_BH FROM CLAIM_GENERAL WHERE ID=:id";Add(cmd,"id",id);cn.Open();using(var rd=cmd.ExecuteReader())return rd.Read()?MapClaim(rd):null;}}
+        public int InsertComplete(Claim claim,LossPaymentViewModel loss,QuoteViewModel quote)
+        {
+            throw new NotSupportedException("Chế độ dữ liệu hiện tại chưa hỗ trợ lưu đủ ba tab hồ sơ. Vui lòng sử dụng SQLite hoặc Demo.");
+        }
         public int Insert(Claim x){using(var cn=new OracleConnection(_cs))using(var cmd=cn.CreateCommand()){cmd.CommandText=@"INSERT INTO CLAIM_GENERAL(ID,MA_DON_VI,TEN_DON_VI,MA_KHU_VUC,TEN_KHU_VUC,BIEN_SO,NGAY_NHAP,NGAY_NHAP_CALL,SO_HOP_DONG,TINH_TRANG,NGAY_QUYET_DINH,NGAY_XAY_RA,NGAY_THONG_BAO,SO_HO_SO,MA_GDV,GIA_TRI_BH) VALUES(CLAIM_GENERAL_SEQ.NEXTVAL,:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o) RETURNING ID INTO :newId";BindClaim(cmd,x);var p=new OracleParameter("newId",OracleDbType.Int32){Direction=System.Data.ParameterDirection.Output};cmd.Parameters.Add(p);cn.Open();cmd.ExecuteNonQuery();return Convert.ToInt32(p.Value.ToString());}}
         public void Update(Claim x){using(var cn=new OracleConnection(_cs))using(var cmd=cn.CreateCommand()){cmd.CommandText=@"UPDATE CLAIM_GENERAL SET MA_DON_VI=:a,TEN_DON_VI=:b,MA_KHU_VUC=:c,TEN_KHU_VUC=:d,BIEN_SO=:e,NGAY_NHAP=:f,NGAY_NHAP_CALL=:g,SO_HOP_DONG=:h,TINH_TRANG=:i,NGAY_QUYET_DINH=:j,NGAY_XAY_RA=:k,NGAY_THONG_BAO=:l,SO_HO_SO=:m,MA_GDV=:n,GIA_TRI_BH=:o WHERE ID=:id";BindClaim(cmd,x);Add(cmd,"id",x.Id);cn.Open();cmd.ExecuteNonQuery();}}
         public void Delete(int id){using(var cn=new OracleConnection(_cs))using(var cmd=cn.CreateCommand()){cmd.CommandText="DELETE FROM CLAIM_GENERAL WHERE ID=:id";Add(cmd,"id",id);cn.Open();cmd.ExecuteNonQuery();}}

@@ -118,6 +118,7 @@
     <Compile Include="Repositories\OracleClaimRepository.cs" />
     <Compile Include="Repositories\SQLiteClaimRepository.cs" />
     <Compile Include="Services\ClaimService.cs" />
+    <Compile Include="Services\QuoteValidation.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

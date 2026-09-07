@@ -157,15 +157,33 @@ namespace ClaimCar.Web.Repositories
 
         public int Insert(Claim claim)
         {
-            using (var connection = OpenConnection())
-            using (var command = connection.CreateCommand())
+            using(var connection=OpenConnection())using(var transaction=connection.BeginTransaction())
             {
+                var id=Insert(connection,transaction,claim);transaction.Commit();return id;
+            }
+        }
+        private static int Insert(SQLiteConnection connection,SQLiteTransaction transaction,Claim claim)
+        {
+            using(var command=connection.CreateCommand())
+            {
+                command.Transaction=transaction;
                 command.CommandText = @"INSERT INTO CLAIM_GENERAL
                     (MA_DON_VI,TEN_DON_VI,MA_KHU_VUC,TEN_KHU_VUC,BIEN_SO,NGAY_NHAP,NGAY_NHAP_CALL,SO_HOP_DONG,TINH_TRANG,NGAY_QUYET_DINH,NGAY_XAY_RA,NGAY_THONG_BAO,SO_HO_SO,MA_GDV,GIA_TRI_BH,NGUOI_TAO)
                     VALUES (@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o,@p);
                     SELECT last_insert_rowid();";
                 BindClaim(command, claim);
                 return Convert.ToInt32(command.ExecuteScalar());
+            }
+        }
+        public int InsertComplete(Claim claim,LossPaymentViewModel loss,QuoteViewModel quote)
+        {
+            using(var connection=OpenConnection())using(var transaction=connection.BeginTransaction())
+            {
+                var id=Insert(connection,transaction,claim);
+                loss.ClaimId=id;quote.ClaimId=id;
+                SaveLossPayment(connection,transaction,loss);
+                SaveQuote(connection,transaction,quote);
+                transaction.Commit();return id;
             }
         }
 
@@ -225,14 +243,17 @@ namespace ClaimCar.Web.Repositories
 
         public void SaveLossPayment(LossPaymentViewModel model)
         {
-            using(var connection=OpenConnection()) using(var transaction=connection.BeginTransaction())
+            using(var connection=OpenConnection())using(var transaction=connection.BeginTransaction())
             {
+                SaveLossPayment(connection,transaction,model);transaction.Commit();
+            }
+        }
+        private static void SaveLossPayment(SQLiteConnection connection,SQLiteTransaction transaction,LossPaymentViewModel model)
+        {
                 Execute(connection,transaction,"INSERT OR REPLACE INTO CLAIM_LOSS_PAYMENT VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o)",c=>{Add(c,"@id",model.ClaimId);Add(c,"@a",model.CauseCode);Add(c,"@b",model.BehaviorCode);Add(c,"@c",model.AreaCode);Add(c,"@d",model.EventCode);Add(c,"@e",model.TbtnYcbReference);Add(c,"@f",model.VehicleCertificateValue);Add(c,"@g",model.AccidentDescription);Add(c,"@h",model.CauseDescription);Add(c,"@i",model.ConsequenceDescription);Add(c,"@j",model.GarageCode);Add(c,"@k",model.GarageName);Add(c,"@l",model.GaragePhone);Add(c,"@m",model.GarageEmail);Add(c,"@n",model.PayThroughGarage?1:0);Add(c,"@o",model.AssociationFund?1:0);});
                 ReplaceChildren(connection,transaction,"CLAIM_COVERAGE",model.ClaimId,model.Coverages,(c,x)=>{c.CommandText="INSERT INTO CLAIM_COVERAGE(CLAIM_ID,LOAI_HINH,NGOAI_TE,TIEN_BAO_HIEM,TY_LE_TT,TIEN_TT,KHAU_TRU,TIEN_BOI_THUONG,THUE) VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h)";Add(c,"@a",x.CoverageCode);Add(c,"@b",x.Currency);Add(c,"@c",x.InsuranceAmount);Add(c,"@d",x.LossPercent);Add(c,"@e",x.LossAmount);Add(c,"@f",x.Deductible);Add(c,"@g",x.CompensationAmount);Add(c,"@h",x.TaxAmount);});
                 ReplaceChildren(connection,transaction,"CLAIM_BENEFICIARY",model.ClaimId,model.OtherBeneficiaries,(c,x)=>{c.CommandText="INSERT INTO CLAIM_BENEFICIARY(CLAIM_ID,MA,TEN,NGOAI_TE,SO_TIEN) VALUES(@id,@a,@b,@c,@d)";Add(c,"@a",x.Code);Add(c,"@b",x.Name);Add(c,"@c",x.Currency);Add(c,"@d",x.Amount);});
                 ReplaceChildren(connection,transaction,"CLAIM_THIRD_PARTY",model.ClaimId,model.ThirdParties,(c,x)=>{c.CommandText="INSERT INTO CLAIM_THIRD_PARTY(CLAIM_ID,TEN,NGOAI_TE,SO_TIEN) VALUES(@id,@a,@b,@c)";Add(c,"@a",x.Name);Add(c,"@b",x.Currency);Add(c,"@c",x.Amount);});
-                transaction.Commit();
-            }
         }
 
         public QuoteViewModel GetQuote(int claimId)
@@ -251,11 +272,14 @@ namespace ClaimCar.Web.Repositories
         {
             using(var connection=OpenConnection())using(var transaction=connection.BeginTransaction())
             {
+                SaveQuote(connection,transaction,m);transaction.Commit();
+            }
+        }
+        private static void SaveQuote(SQLiteConnection connection,SQLiteTransaction transaction,QuoteViewModel m)
+        {
                 Execute(connection,transaction,"INSERT OR REPLACE INTO CLAIM_QUOTE(CLAIM_ID,KIEU_DUYET,GIA_TRI_THUC_TE,NGAY_TRINH,LY_DO_GIAM_TRU,TONG_THAY_THE,TONG_THAY_THE_DB,TONG_SUA_CHUA,TONG_SON,TONG_CONG,TONG_CAU_KEO,GG_THAY_THE,GG_SUA_CHUA,GG_SON,KHAU_HAO_THAY_THE,KHAU_HAO_DB,TL_GIA_TRI_THAM_GIA,TL_PHI_THAM_GIA,SO_VU_KHAU_TRU,MUC_KHAU_TRU,GIAM_TRU_BT,CHIA_SE_RUI_RO,KHACH_HANG_THANH_TOAN,TONG_DUYET_GIA,CHECKER,CHI_PHI_CAN_THIET_HOP_LY,KHAU_TRU_RIENG_DKBS,LOAI_BOI_THUONG,THIET_HAI_NGOAI_PHAM_VI,GG_CONG) VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h,@i,@j,@k,@l,@m,@n,@o,@p,@q,@r,@s,@t,@u,@v,@w,@x,@y,@z,@aa,@ab,@ac)",c=>{Add(c,"@id",m.ClaimId);Add(c,"@a",m.ApprovalType);Add(c,"@b",m.ActualValue);Add(c,"@c",IsoDate(m.SubmitDate));Add(c,"@d",m.ReductionReason);Add(c,"@e",m.ReplacementTotal);Add(c,"@f",m.SpecialReplacementTotal);Add(c,"@g",m.RepairTotal);Add(c,"@h",m.PaintTotal);Add(c,"@i",m.LaborTotal);Add(c,"@j",m.TowingTotal);Add(c,"@k",m.ReplacementDiscountPercent);Add(c,"@l",m.RepairDiscountPercent);Add(c,"@m",m.PaintDiscountPercent);Add(c,"@n",m.ReplacementDepreciationPercent);Add(c,"@o",m.SpecialDepreciationPercent);Add(c,"@p",m.ParticipationValuePercent);Add(c,"@q",m.ParticipationFeePercent);Add(c,"@r",m.DeductibleCases);Add(c,"@s",m.DeductibleAmount);Add(c,"@t",m.CompensationReductionPercent);Add(c,"@u",m.RiskSharingPercent);Add(c,"@v",m.CustomerPaymentTotal);Add(c,"@w",m.ApprovedTotal);Add(c,"@x",m.Checker);Add(c,"@y",m.NecessaryReasonableCost);Add(c,"@z",m.SupplementalDeductibleAmount);Add(c,"@aa",m.CompensationMethod);Add(c,"@ab",m.UncoveredDamageValue);Add(c,"@ac",m.LaborDiscountPercent);});
                 Execute(connection,transaction,"INSERT OR REPLACE INTO CLAIM_QUOTE_DISCOUNT(CLAIM_ID,GG_THAY_THE_DB,GG_CAU_KEO,SO_TIEN_GIAM_TRU_BT) VALUES(@id,@a,@b,@c)",c=>{Add(c,"@id",m.ClaimId);Add(c,"@a",m.SpecialReplacementDiscountPercent);Add(c,"@b",m.TowingDiscountPercent);Add(c,"@c",m.CompensationReductionAmount);});
                 ReplaceChildren(connection,transaction,"CLAIM_QUOTE_ITEM",m.ClaimId,m.Items,(c,x)=>{c.CommandText="INSERT INTO CLAIM_QUOTE_ITEM(CLAIM_ID,MA_PHU_TUNG,TEN_PHU_TUNG,SO_LUONG,THIET_HAI,KICH_THUOC,PHUONG_AN,LOAI_PT,GIA_PT,SON,CONG) VALUES(@id,@a,@b,@c,@d,@e,@f,@g,@h,@i,@j)";Add(c,"@a",x.PartCode);Add(c,"@b",x.PartName);Add(c,"@c",x.Quantity);Add(c,"@d",x.Damage);Add(c,"@e",x.Dimensions);Add(c,"@f",x.Proposal);Add(c,"@g",x.PartType);Add(c,"@h",x.PartPrice);Add(c,"@i",x.PaintCost);Add(c,"@j",x.LaborCost);});
-                transaction.Commit();
-            }
         }
 
         private static void ReadRows(SQLiteConnection connection, string sql, int claimId, Action<SQLiteDataReader> read)

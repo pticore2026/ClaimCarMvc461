@@ -52,6 +52,10 @@ namespace ClaimCar.Web.Repositories
             }
         }
 
+        public int InsertComplete(Claim claim,LossPaymentViewModel loss,QuoteViewModel quote)
+        {
+            throw new NotSupportedException("Chế độ dữ liệu hiện tại chưa hỗ trợ lưu đủ ba tab hồ sơ. Vui lòng sử dụng SQLite hoặc Demo.");
+        }
         public int Insert(Claim claim)
         {
             using (var connection = new MySqlConnection(_connectionString))

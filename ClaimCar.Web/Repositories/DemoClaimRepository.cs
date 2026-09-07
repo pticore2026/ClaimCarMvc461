@@ -39,6 +39,15 @@ namespace ClaimCar.Web.Repositories
             }
         }
         public Claim Get(int id) { lock(Sync){ var x=Claims.FirstOrDefault(c=>c.Id==id); return x==null?null:CloneClaim(x); } }
+        public int InsertComplete(Claim claim,LossPaymentViewModel loss,QuoteViewModel quote)
+        {
+            lock(Sync)
+            {
+                var id=Insert(claim);
+                try{loss.ClaimId=id;quote.ClaimId=id;SaveLossPayment(loss);SaveQuote(quote);return id;}
+                catch{Delete(id);throw;}
+            }
+        }
         public int Insert(Claim claim) { lock(Sync){ claim.Id=Claims.Count==0?1:Claims.Max(x=>x.Id)+1; Claims.Add(CloneClaim(claim)); return claim.Id; } }
         public void Update(Claim claim) { lock(Sync){ var i=Claims.FindIndex(x=>x.Id==claim.Id); if(i>=0) Claims[i]=CloneClaim(claim); } }
         public void Delete(int id) { lock(Sync){ Claims.RemoveAll(x=>x.Id==id); Losses.Remove(id); Quotes.Remove(id); } }

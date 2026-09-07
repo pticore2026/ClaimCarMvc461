@@ -1,7 +1,7 @@
 @model ClaimCar.Web.Models.LossPaymentViewModel
 @{ ViewBag.Title="Tổn thất / Chi trả"; var claim=(ClaimCar.Web.Models.Claim)ViewBag.Claim; var eventCodes=new[]{"Không sự kiện 2025","Bão số 12 - Fengshen","Bão số 11 - Matmo","Bão số 10 - Bualai","Bão số 2 - Yagi"}; }
 <div class="toolbar"><div><h1>Tổn thất / Chi trả</h1><div class="muted">Xác định phạm vi bảo hiểm, trách nhiệm, gara và luồng thanh toán.</div></div><a class="btn btn-secondary" href="@Url.Action("Index","Claim")">Danh sách hồ sơ</a></div>
-<div class="tabs"><a class="tab" href="@Url.Action("Edit","Claim",new{id=Model.ClaimId})">Thông tin chung</a><a class="tab active" href="#">Tổn thất / Chi trả</a><a class="tab" href="@Url.Action("Edit","Quote",new{claimId=Model.ClaimId})">Báo giá</a></div>
+<div class="tabs" role="tablist" aria-label="Chi tiết hồ sơ"><button type="button" role="tab" class="tab" data-tab-url="@Url.Action("Edit","Claim",new{id=Model.ClaimId})">Thông tin chung</button><button type="button" role="tab" class="tab active" data-tab-url="#">Tổn thất / Chi trả</button><button type="button" role="tab" class="tab" data-tab-url="@Url.Action("Edit","Quote",new{claimId=Model.ClaimId})">Báo giá</button></div>
 <div class="card">
 @using(Html.BeginForm("Edit","LossPayment",FormMethod.Post,new{accept_charset="utf-8"})){
 @Html.AntiForgeryToken() @Html.HiddenFor(x=>x.ClaimId)

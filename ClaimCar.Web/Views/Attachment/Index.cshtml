@@ -1,6 +1,6 @@
 @model ClaimCar.Web.Models.AttachmentViewModel
 @{ ViewBag.Title="Đính kèm chứng từ"; }
-<div class="toolbar"><div><h1>Đính kèm chứng từ</h1></div><a class="btn btn-secondary" href="@Url.Action("Index","Claim")">Danh sách hồ sơ</a></div>
+<div class="toolbar"><div><h1>Đính kèm chứng từ</h1></div><a class="btn btn-secondary popup-hide" href="@Url.Action("Index","Claim")">Danh sách hồ sơ</a></div>
 @if(TempData["AttachmentError"]!=null){<div class="notice notice-error">@TempData["AttachmentError"]</div>}
 <div class="card">
 @using(Html.BeginForm("Index","Attachment",FormMethod.Get,new{@class="attachment-filter"})){

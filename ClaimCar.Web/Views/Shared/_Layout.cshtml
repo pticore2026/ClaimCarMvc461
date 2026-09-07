@@ -8,12 +8,13 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <script>if(window.frameElement&&window.frameElement.id==='policy-modal-frame')document.documentElement.classList.add('menu-popup-page');</script>
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewBag.Title - Bồi thường Xe</title>
     <link rel="stylesheet" href="@Url.Content("~/Content/site.css?v=20260907-2")" />
-    <link rel="stylesheet" href="@Url.Content("~/Content/policy-popup.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/policy-popup.css?v=20260907-1")" />
     <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-notification.css")" />
     <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-utilities.css")" />
     <link rel="stylesheet" href="@Url.Content("~/Content/attachments.css?v=20260903-2")" />
@@ -23,7 +24,7 @@
     <div class="brand">Bồi thường Xe / Tiếp nhận hồ sơ và báo giá</div>
     <nav class="top-actions">
         <a href="@Url.Action("Create","Claim")">+ Tạo mới hồ sơ</a>
-        @if(showClaimTools){<a href="@Url.Action("Index","Attachment",new{claimId=currentClaimId>0?(int?)currentClaimId:null})">📎 Đính kèm chứng từ</a><a href="@Url.Action("Index","SupportingDocument")">📄 Giấy tờ kèm hồ sơ</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>}
+        @if(showClaimTools){<a href="@Url.Action("Index","Attachment",new{claimId=currentClaimId>0?(int?)currentClaimId:null})" onclick="return openMenuPopup(this)" data-popup-title="Đính kèm chứng từ">📎 Đính kèm chứng từ</a><a href="@Url.Action("Index","SupportingDocument")" onclick="return openMenuPopup(this)" data-popup-title="Giấy tờ kèm hồ sơ">📄 Giấy tờ kèm hồ sơ</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>}
         @if(currentClaimId>0||currentController=="Claim"){<a href="#" data-popup-url="@Url.Action("Popup","Policy")" data-policy-lookup-url="@Url.Action("PopupByPolicyNumber","Policy")" data-current-claim-id="@currentClaimId" onclick="return openPolicyPopup(this)">◉ TTin HĐ</a>}
         <a href="@Url.Action("Logout","Account")">Đăng xuất</a>
     </nav>
@@ -57,14 +58,24 @@ function openPolicyPopup(link){
     }else{
         url=link.getAttribute('data-popup-url')+'?claimId='+encodeURIComponent(claimId);
     }
+    return showMenuPopup(url,'Thông tin hợp đồng bảo hiểm',link);
+}
+var popupOpener=null;
+function openMenuPopup(link){return showMenuPopup(link.href,link.getAttribute('data-popup-title'),link);}
+function showMenuPopup(url,title,link){
+    popupOpener=link;
     var modal=document.getElementById('policy-modal');
-    document.getElementById('policy-modal-frame').src=url;
+    modal.querySelector('[role="dialog"]').setAttribute('aria-label',title);
+    var frame=document.getElementById('policy-modal-frame');
+    frame.title=title;
+    frame.src=url;
     modal.className='policy-modal open';
     modal.setAttribute('aria-hidden','false');
-    document.body.className+=' modal-open';
+    document.body.classList.add('modal-open');
+    modal.querySelector('.policy-modal-close').focus();
     return false;
 }
-function closePolicyPopup(){var modal=document.getElementById('policy-modal');modal.className='policy-modal';modal.setAttribute('aria-hidden','true');document.getElementById('policy-modal-frame').src='about:blank';document.body.className=document.body.className.replace(/\s*modal-open/g,'');}
+function closePolicyPopup(){if(window.frameElement&&window.frameElement.id==='policy-modal-frame'){window.parent.closePolicyPopup();return;}var modal=document.getElementById('policy-modal');modal.className='policy-modal';modal.setAttribute('aria-hidden','true');document.getElementById('policy-modal-frame').src='about:blank';document.body.classList.remove('modal-open');if(popupOpener)popupOpener.focus();}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closePolicyPopup();});
 document.addEventListener('DOMContentLoaded',function(){
     var selectAll=document.querySelector('.js-claim-select-all');

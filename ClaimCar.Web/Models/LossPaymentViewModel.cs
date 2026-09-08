@@ -8,12 +8,13 @@ namespace ClaimCar.Web.Models
         public string CoverageCode { get; set; }
         public string Currency { get; set; }
         public decimal InsuranceAmount { get; set; }
+        public decimal LossPercent { get; set; }
         public decimal LossAmount { get; set; }
         public decimal Deductible { get; set; }
         public decimal CompensationAmount { get; set; }
         public decimal TaxAmount { get; set; }
     }
-    public class BeneficiaryLine { public int Id { get; set; } public string Code { get; set; } public string Name { get; set; } }
+    public class BeneficiaryLine { public int Id { get; set; } public string Code { get; set; } public string Name { get; set; } public string Currency { get; set; } public decimal Amount { get; set; } }
     public class ThirdPartyLine { public int Id { get; set; } public string Name { get; set; } public string Currency { get; set; } public decimal Amount { get; set; } }
     public class LossPaymentViewModel
     {

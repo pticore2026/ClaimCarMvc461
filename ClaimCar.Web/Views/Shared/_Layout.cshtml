@@ -1,17 +1,31 @@
+@{
+    var currentClaimId=ViewBag.ClaimId==null?0:Convert.ToInt32(ViewBag.ClaimId);
+    var currentController=(ViewContext.RouteData.Values["controller"]??"").ToString();
+    var currentAction=(ViewContext.RouteData.Values["action"]??"").ToString();
+    var showClaimTools=(currentController=="Claim"&&(currentAction=="Create"||currentAction=="Edit"))
+        || ((currentController=="LossPayment"||currentController=="Quote")&&currentAction=="Edit");
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <script>if(window.frameElement&&window.frameElement.id==='policy-modal-frame')document.documentElement.classList.add('menu-popup-page');</script>
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewBag.Title - Bồi thường Xe</title>
-    <link rel="stylesheet" href="@Url.Content("~/Content/site.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/site.css?v=20260907-2")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/policy-popup.css?v=20260907-1")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-notification.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/claimcar-utilities.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/attachments.css?v=20260903-2")" />
 </head>
 <body>
 <header class="topbar">
     <div class="brand">Bồi thường Xe / Tiếp nhận hồ sơ và báo giá</div>
     <nav class="top-actions">
-        <a href="#">📎 Đính kèm chứng từ</a><a href="#">📄 Giấy tờ kèm hồ sơ</a><a href="#">◉ TTin HĐ</a><a href="#">◉ Phí, BT</a><a href="#">Tiện ích ▾</a>
+        <a href="@Url.Action("Create","Claim")">+ Tạo mới hồ sơ</a>
+        @if(showClaimTools){<a href="@Url.Action("Index","Attachment",new{claimId=currentClaimId>0?(int?)currentClaimId:null})" onclick="return openMenuPopup(this)" data-popup-title="Đính kèm chứng từ">📎 Đính kèm chứng từ</a><a href="@Url.Action("Index","SupportingDocument")" onclick="return openMenuPopup(this)" data-popup-title="Giấy tờ kèm hồ sơ">📄 Giấy tờ kèm hồ sơ</a><div class="utility-menu"><a href="#">Tiện ích ▾</a><div class="utility-dropdown"><div class="utility-dropdown-inner"><button class="js-bulk-delete" type="button" data-url="@Url.Action("BulkDelete","Claim")">Xoá nhiều dòng</button></div></div></div>}
+        @if(currentClaimId>0||currentController=="Claim"){<a href="#" data-popup-url="@Url.Action("Popup","Policy")" data-policy-lookup-url="@Url.Action("PopupByPolicyNumber","Policy")" data-current-claim-id="@currentClaimId" onclick="return openPolicyPopup(this)">◉ TTin HĐ</a>}
         <a href="@Url.Action("Logout","Account")">Đăng xuất</a>
     </nav>
 </header>
@@ -19,5 +33,265 @@
     @if(TempData["Success"]!=null){<div class="notice notice-success">@TempData["Success"]</div>}
     @RenderBody()
 </main>
+<div id="policy-modal" class="policy-modal" aria-hidden="true"><div class="policy-modal-backdrop" onclick="closePolicyPopup()"></div><div class="policy-modal-dialog" role="dialog" aria-modal="true" aria-label="Thông tin hợp đồng bảo hiểm"><button class="policy-modal-close" type="button" onclick="closePolicyPopup()" aria-label="Đóng">×</button><iframe id="policy-modal-frame" class="policy-modal-frame" title="Thông tin hợp đồng bảo hiểm"></iframe></div></div>
+<script src="@Url.Content("~/Scripts/claimcar-notification.js")"></script>
+<script src="@Url.Content("~/Scripts/claimcar-bulk-delete.js")"></script>
+<script src="@Url.Content("~/Scripts/loss-code-picker.js?v=20260904-5")"></script>
+<script src="@Url.Content("~/Scripts/quote-part-picker.js?v=20260904-1")"></script>
+<script>
+function openPolicyPopup(link){
+    var choices=document.querySelectorAll('.js-claim-select:checked');
+    var claimId=0;
+    if(document.querySelector('.js-claim-select')){
+        if(choices.length===0){ClaimCarNotification.warning('Vui lòng chọn một hồ sơ bồi thường để xem thông tin hợp đồng.');return false;}
+        if(choices.length>1){ClaimCarNotification.warning('Chỉ được chọn một hồ sơ bồi thường để xem thông tin hợp đồng.');return false;}
+        claimId=parseInt(choices[0].value,10)||0;
+    }else{
+        claimId=parseInt(link.getAttribute('data-current-claim-id'),10)||0;
+    }
+    var url;
+    if(!claimId){
+        var policyField=document.querySelector('input[name="PolicyNumber"]');
+        var policyNumber=policyField?policyField.value.trim():'';
+        if(!policyNumber){ClaimCarNotification.error('Không tồn tại hợp đồng khả dụng');return false;}
+        url=link.getAttribute('data-policy-lookup-url')+'?policyNumber='+encodeURIComponent(policyNumber);
+    }else{
+        url=link.getAttribute('data-popup-url')+'?claimId='+encodeURIComponent(claimId);
+    }
+    return showMenuPopup(url,'Thông tin hợp đồng bảo hiểm',link);
+}
+var popupOpener=null;
+function openMenuPopup(link){return showMenuPopup(link.href,link.getAttribute('data-popup-title'),link);}
+function showMenuPopup(url,title,link){
+    popupOpener=link;
+    var modal=document.getElementById('policy-modal');
+    modal.querySelector('[role="dialog"]').setAttribute('aria-label',title);
+    var frame=document.getElementById('policy-modal-frame');
+    frame.title=title;
+    frame.src=url;
+    modal.className='policy-modal open';
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+    modal.querySelector('.policy-modal-close').focus();
+    return false;
+}
+function closePolicyPopup(){if(window.frameElement&&window.frameElement.id==='policy-modal-frame'){window.parent.closePolicyPopup();return;}var modal=document.getElementById('policy-modal');modal.className='policy-modal';modal.setAttribute('aria-hidden','true');document.getElementById('policy-modal-frame').src='about:blank';document.body.classList.remove('modal-open');if(popupOpener)popupOpener.focus();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closePolicyPopup();});
+document.addEventListener('DOMContentLoaded',function(){
+    var selectAll=document.querySelector('.js-claim-select-all');
+    var claimChoices=Array.prototype.slice.call(document.querySelectorAll('.js-claim-select'));
+    if(selectAll){
+        selectAll.addEventListener('change',function(){
+            for(var c=0;c<claimChoices.length;c++)claimChoices[c].checked=selectAll.checked;
+            selectAll.indeterminate=false;
+        });
+        for(var c=0;c<claimChoices.length;c++)claimChoices[c].addEventListener('change',function(){
+            var selected=document.querySelectorAll('.js-claim-select:checked').length;
+            selectAll.checked=claimChoices.length>0&&selected===claimChoices.length;
+            selectAll.indeterminate=selected>0&&selected<claimChoices.length;
+        });
+    }
+
+    var tabBar=document.querySelector('.tabs');
+    if(!tabBar)return;
+
+    var tabs=Array.prototype.slice.call(tabBar.querySelectorAll('.tab'));
+    var currentIndex=tabs.indexOf(tabBar.querySelector('.tab.active'));
+    var currentPanel=tabBar.nextElementSibling;
+    if(currentIndex<0||!currentPanel||currentPanel.className.indexOf('card')===-1)return;
+
+    var createUrl=tabBar.getAttribute("data-create-url");
+    var saving=false;
+    var panels=[];
+    var loaders=[];
+    currentPanel.className+=' tab-panel';
+    panels[currentIndex]=currentPanel;
+
+    var requestedTab=currentIndex;
+    function showTab(index){
+        if(index<0||index>=tabs.length||!panels[index])return;
+        for(var i=0;i<tabs.length;i++){
+            tabs[i].classList.toggle('active',i===index);
+            tabs[i].setAttribute('aria-selected',i===index?'true':'false');
+            if(panels[i])panels[i].style.display=i===index?'':'none';
+        }
+    }
+
+    showTab(currentIndex);
+
+    function switchTab(index){
+        requestedTab=index;
+        loadTab(index).then(function(){
+            if(requestedTab===index)showTab(index);
+        }).catch(function(){
+            if(requestedTab===index)ClaimCarNotification.error('Không tải được nội dung tab. Vui lòng bấm lại để thử.');
+        });
+    }
+
+    function validateRequiredFields(panel){
+        if(!panel)return true;
+        var groups=panel.querySelectorAll('.form-group');
+        var missing=[];
+        var firstField=null;
+        for(var i=0;i<groups.length;i++){
+            var label=groups[i].querySelector('label.required');
+            if(!label)continue;
+            var field=groups[i].querySelector('input:not([type="hidden"]),select,textarea');
+            var value='';
+            if(field)value=field.value;
+            else{
+                field=groups[i].querySelector('input[type="hidden"]');
+                if(field)value=field.value;
+            }
+            var empty=value===null||String(value).replace(/^\s+|\s+$/g,'')==='';
+            groups[i].classList.toggle('required-field-error',empty);
+            if(field)field.setAttribute('aria-invalid',empty?'true':'false');
+            if(empty){
+                missing.push(label.textContent.replace(/\s*\*\s*$/,'').replace(/^\s+|\s+$/g,''));
+                if(!firstField)firstField=groups[i].querySelector('.code-picker-trigger,input:not([type="hidden"]),select,textarea');
+            }
+        }
+        var oldNotice=panel.querySelector('.required-fields-notice');
+        if(!missing.length){if(oldNotice)oldNotice.parentNode.removeChild(oldNotice);return true;}
+        var message='Vui lòng nhập đầy đủ các trường bắt buộc: '+missing.join(', ')+'.';
+        if(!oldNotice){
+            oldNotice=document.createElement('div');
+            oldNotice.className='notice notice-error required-fields-notice';
+            var form=panel.querySelector('form');
+            if(form)form.insertBefore(oldNotice,form.firstChild);
+        }
+        oldNotice.textContent=message;
+        if(window.ClaimCarNotification)ClaimCarNotification.warning(message);
+        if(firstField&&firstField.focus)firstField.focus();
+        if(oldNotice&&oldNotice.scrollIntoView)oldNotice.scrollIntoView({behavior:'smooth',block:'center'});
+        return false;
+    }
+
+    function loadTab(index){
+        if(panels[index])return Promise.resolve(panels[index]);
+        if(loaders[index])return loaders[index];
+        var url=tabs[index].getAttribute('data-tab-url')||tabs[index].getAttribute('href');
+        if(!url||url==='#')return Promise.reject(new Error('Tab không có URL nội dung.'));
+        if(createUrl&&index===2){
+            var policyInput=currentPanel.querySelector('[name="PolicyNumber"]');
+            url+='?policyNumber='+encodeURIComponent(policyInput?policyInput.value.trim():'');
+        }
+        loaders[index]=fetch(url,{credentials:'same-origin'})
+            .then(function(response){if(!response.ok)throw new Error('Không tải được tab.');return response.text();})
+            .then(function(html){
+                var page=new DOMParser().parseFromString(html,'text/html');
+                var card=page.querySelector('.tabs + .card');
+                if(!card)throw new Error('Không tìm thấy nội dung tab.');
+                card=document.importNode(card,true);
+                card.className+=' tab-panel';
+                card.style.display='none';
+                currentPanel.parentNode.insertBefore(card,currentPanel.nextSibling);
+                panels[index]=card;
+                return card;
+            })
+            .catch(function(error){loaders[index]=null;throw error;});
+        return loaders[index];
+    }
+
+    if(!createUrl)for(var i=0;i<tabs.length;i++)if(i!==currentIndex)loadTab(i).catch(function(){});
+
+    if(createUrl){
+        var policyVersion=0;
+        currentPanel.addEventListener('change',function(e){
+            if(e.target.name!=='PolicyNumber'||!panels[2])return;
+            var version=++policyVersion;
+            fetch(tabBar.getAttribute('data-policy-url')+'?policyNumber='+encodeURIComponent(e.target.value.trim()),{credentials:'same-origin'})
+                .then(function(response){if(!response.ok)throw new Error();return response.json();})
+                .then(function(policy){
+                    if(version!==policyVersion)return;
+                    var panel=panels[2];
+                    [['PolicyInsuredAmount','InsuredAmount'],['PolicyVehicleValue','VehicleValue'],['PolicyDeductible','Deductible']].forEach(function(pair){
+                        var input=panel.querySelector('#'+pair[0]);if(input)input.value=policy.found?policy[pair[1]]:0;
+                    });
+                    var trigger=panel.querySelector('.part-add-trigger');
+                    if(trigger){trigger.setAttribute('data-vehicle-brand',policy.Brand||'');trigger.setAttribute('data-vehicle-version',policy.Model||'');trigger.setAttribute('data-vehicle-type-number',policy.ChassisNumber||'');}
+                    var input=panel.querySelector('[name="ActualValue"]');if(input)input.dispatchEvent(new Event('input',{bubbles:true}));
+                }).catch(function(){ClaimCarNotification.error('Không tải được thông tin hợp đồng. Vui lòng thử lại.');});
+        });
+        document.addEventListener('submit',function(e){
+            if(!e.target.closest('.tab-panel'))return;
+            e.preventDefault();
+            if(saving)return;
+            saving=true;
+            var saveButton=e.target.querySelector('[type="submit"]');
+            if(saveButton)saveButton.disabled=true;
+            Promise.all(tabs.map(function(tab,index){return loadTab(index);})).then(function(){
+                for(var i=0;i<tabs.length;i++){
+                    var form=panels[i].querySelector('form');
+                    showTab(i);
+                    if(!validateRequiredFields(panels[i]))return null;
+                    if(!form.checkValidity()){form.reportValidity();return null;}
+                }
+                showTab(2);
+                var data=new FormData();
+                ['claim','loss','quote'].forEach(function(prefix,index){
+                    var form=panels[index].querySelector('form');
+                    var disabled=Array.prototype.slice.call(form.querySelectorAll('select:disabled'));
+                    disabled.forEach(function(field){field.disabled=false;});
+                    new FormData(form).forEach(function(value,key){
+                        if(key==='__RequestVerificationToken'){if(!data.has(key))data.append(key,value);}
+                        else data.append(prefix+'.'+key,value);
+                    });
+                    disabled.forEach(function(field){field.disabled=true;});
+                });
+                return fetch(createUrl,{method:'POST',body:data,credentials:'same-origin'})
+                    .then(function(response){if(!response.ok)throw new Error();return response.json();})
+                    .then(function(result){
+                        if(result.success){window.location.assign(result.url);return;}
+                        var errors=result.errors||[];
+                        var first=errors.length?errors[0].field.split('.')[0]:'';
+                        var index=['claim','loss','quote'].indexOf(first);if(index>=0)showTab(index);
+                        ClaimCarNotification.error(errors.map(function(error){return error.message;}).join('\n')||'Không lưu được hồ sơ.');
+                    });
+            }).catch(function(){ClaimCarNotification.error('Không tải hoặc lưu được hồ sơ. Dữ liệu đang nhập được giữ lại; vui lòng thử lại.');})
+                .then(function(){saving=false;if(saveButton)saveButton.disabled=false;});
+        });
+    }
+
+    tabBar.addEventListener('click',function(e){
+        var tab=e.target.closest?e.target.closest('.tab'):null;
+        if(!tab)return;
+        e.preventDefault();
+        var index=tabs.indexOf(tab);
+        switchTab(index);
+    });
+
+    document.addEventListener('click',function(e){
+        var button=e.target.closest?e.target.closest('.js-next-tab'):null;
+        if(!button||button.disabled)return;
+        e.preventDefault();
+        var activeIndex=tabs.indexOf(tabBar.querySelector('.tab.active'));
+        var index=activeIndex+1;
+        if(index>=tabs.length)return;
+        switchTab(index);
+    });
+
+    document.addEventListener('click',function(e){
+        var button=e.target.closest?e.target.closest('.js-previous-tab'):null;
+        if(!button||button.disabled)return;
+        e.preventDefault();
+        var index=tabs.indexOf(tabBar.querySelector('.tab.active'))-1;
+        if(index<0)return;
+        switchTab(index);
+    });
+
+    document.addEventListener('input',function(e){
+        var group=e.target.closest?e.target.closest('.form-group.required-field-error'):null;
+        if(group&&e.target.value!==null&&String(e.target.value).replace(/^\s+|\s+$/g,'')!==''){
+            group.classList.remove('required-field-error');
+            e.target.setAttribute('aria-invalid','false');
+        }
+    });
+    document.addEventListener('change',function(e){
+        var group=e.target.closest?e.target.closest('.form-group.required-field-error'):null;
+        if(group&&e.target.value){group.classList.remove('required-field-error');e.target.setAttribute('aria-invalid','false');}
+    });
+});
+</script>
 </body>
 </html>

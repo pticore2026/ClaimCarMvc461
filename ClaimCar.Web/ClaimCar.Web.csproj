@@ -40,6 +40,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Mono.Data.Sqlite" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Configuration" />
@@ -76,6 +77,10 @@
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="MySql.Data, Version=8.0.33.0, Culture=neutral, PublicKeyToken=C5687FC88969C44D, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.0.33\lib\net462\MySql.Data.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Oracle.ManagedDataAccess">
       <HintPath>..\packages\Oracle.ManagedDataAccess.12.2.1100\lib\net40\Oracle.ManagedDataAccess.dll</HintPath>
       <Private>True</Private>
@@ -90,21 +95,30 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AttachmentController.cs" />
     <Compile Include="Controllers\ClaimController.cs" />
     <Compile Include="Controllers\LossPaymentController.cs" />
+    <Compile Include="Controllers\PolicyController.cs" />
     <Compile Include="Controllers\QuoteController.cs" />
+    <Compile Include="Controllers\SupportingDocumentController.cs" />
     <Compile Include="Infrastructure\ClaimExtensionHost.cs" />
     <Compile Include="Infrastructure\ConfigLoginService.cs" />
     <Compile Include="Models\Claim.cs" />
+    <Compile Include="Models\AttachmentViewModel.cs" />
     <Compile Include="Models\ClaimDetailViewModel.cs" />
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\LossPaymentViewModel.cs" />
     <Compile Include="Models\QuoteViewModel.cs" />
+    <Compile Include="Models\PolicyDetailViewModel.cs" />
+    <Compile Include="Models\VehiclePolicy.cs" />
     <Compile Include="Repositories\IClaimRepository.cs" />
     <Compile Include="Repositories\ClaimRepositoryFactory.cs" />
     <Compile Include="Repositories\DemoClaimRepository.cs" />
+    <Compile Include="Repositories\MySqlClaimRepository.cs" />
     <Compile Include="Repositories\OracleClaimRepository.cs" />
+    <Compile Include="Repositories\SQLiteClaimRepository.cs" />
     <Compile Include="Services\ClaimService.cs" />
+    <Compile Include="Services\QuoteValidation.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -112,6 +126,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\site.css" />
+    <Content Include="Scripts\loss-code-picker.js" />
+    <Content Include="Scripts\supporting-documents.js" />
+    <Content Include="Scripts\quote-part-picker.js" />
+    <Content Include="Content\policy-popup.css" />
+    <Content Include="Content\claimcar-notification.css" />
+    <Content Include="Scripts\claimcar-notification.js" />
+    <Content Include="Content\claimcar-utilities.css" />
+    <Content Include="Scripts\claimcar-bulk-delete.js" />
+    <Content Include="Content\attachments.css" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
     <Content Include="Views\Web.config" />
@@ -119,14 +142,20 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Attachment\Index.cshtml" />
+    <Content Include="Views\Attachment\ViewFile.cshtml" />
     <Content Include="Views\Claim\Index.cshtml" />
     <Content Include="Views\Claim\Edit.cshtml" />
     <Content Include="Views\LossPayment\Edit.cshtml" />
     <Content Include="Views\Quote\Edit.cshtml" />
     <Content Include="Views\Quote\_MoneyBlock.cshtml" />
+    <Content Include="Views\Policy\Details.cshtml" />
+    <Content Include="Views\Policy\Popup.cshtml" />
+    <Content Include="Views\SupportingDocument\Index.cshtml" />
     <Content Include="packages.config" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <Content Include="App_Data\ClaimExtensions\.gitkeep" />
+    <Content Include="App_Data\Attachments\.gitkeep" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -139,10 +168,10 @@
       <FlavorProperties GUID="{349C5851-65DF-11DA-9384-00065B846F21}">
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
-          <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <AutoAssignPort>False</AutoAssignPort>
+          <DevelopmentServerPort>8080</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:51431/</IISUrl>
+          <IISUrl>http://localhost:8080/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

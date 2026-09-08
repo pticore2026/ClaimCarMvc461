@@ -7,9 +7,11 @@ namespace ClaimCar.Web.Repositories
         IList<Claim> Search(string keyword, string status);
         Claim Get(int id);
         int Insert(Claim claim);
+        int InsertComplete(Claim claim, LossPaymentViewModel loss, QuoteViewModel quote);
         void Update(Claim claim);
         void Delete(int id);
         bool ClaimNumberExists(string claimNumber, int? exceptId);
+        VehiclePolicy GetVehiclePolicy(string policyNumber);
         LossPaymentViewModel GetLossPayment(int claimId);
         void SaveLossPayment(LossPaymentViewModel model);
         QuoteViewModel GetQuote(int claimId);
